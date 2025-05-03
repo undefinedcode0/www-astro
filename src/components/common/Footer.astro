@@ -47,8 +47,60 @@ const date = date_unix.toLocaleDateString('en-US', {
         class="font-mono text-[14px]">{commit}</span
       > | <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
     </p>
+    <p id="quote"></p>
   </div>
 </footer>
+
+<script>
+  const mainContent = document.getElementById('main-content');
+  const quoteElement = document.getElementById('quote');
+
+  const quotes = [
+    'Let your worries fade in the soft embrace of a summer breeze, and let your courage bloom.',
+    'As the snow falls softly on the quiet forest, so let your heart come to rest, and your spirit stand firm.',
+    'When you feel it there, gain the power to persist in the whispering leaves of an ageless oak and receive the serenity to endure.',
+    "Listen to courage on the quiet ripple of a mountain stream, 'Neath dawn so clear and tranquil, gain strength for a new start; gain grace to pause.",
+    'In a deep, restful shade of a willow tree, allow fears to disappear and let your inner light shine.',
+    'As the sun sets over a placid lake, find the peace to reflect on your journey and the courage to continue.',
+    'In the distant thunder lullaby, feel the power within and the calm before every storm.',
+    "At twilight's soft gleaming, may your spirit find rest and your heart lift with quiet bravery.",
+    'In the gentle sway of golden fields, find the peace to breathe deeply and the strength to stand tall.',
+    'Under a canopy of stars, let your dreams soar—be brave enough to reach them yet peaceful enough to believe.',
+    'In the silence of a snowy night, you can feel the serenity of the world and the resilience of your soul.',
+    'Flow with the currents of life as the tide kisses the shore. Be grounded in calm and courage.',
+    'Find in the subdued murmur of a hidden brook the symphony of nature and strength for the future.',
+    'Amidst the tranquil loveliness of some sunlit meadow, let your heart be light and your spirit unyielding.',
+    'Accept the night with peaceful grace, in quiet confidence under the watchful gaze of the moon.',
+    'Find fleeting peace and courage to shine in the darkness in the delicate dance of fireflies.',
+    'Let clarity bring you strength and peace, your soul, to ground.',
+    'Hear the whisper of courage in the rustle of autumn leaves and the promise of renewal.',
+    'Beneath the still surface of an azure sea, find the depths of your strength and the rest of your heart.',
+  ];
+
+  function getRandomQuote() {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    return quotes[randomIndex];
+  }
+
+  let index = 0;
+  const typingSpeed = 30;
+
+  function typeQuote() {
+    const quoteText = getRandomQuote();
+    function type() {
+      if (quoteElement) {
+        if (index < quoteText.length) {
+          quoteElement.innerHTML += quoteText.charAt(index);
+          index++;
+          setTimeout(type, typingSpeed);
+        }
+      }
+    }
+    type();
+  }
+
+  document.addEventListener('DOMContentLoaded', typeQuote);
+</script>
 
 <style>
   .arrow-grid {
