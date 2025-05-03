@@ -1,0 +1,10 @@
+---
+import katex from 'katex';
+
+const { formula = '' } = Astro.props;
+const html = katex.renderToString(formula, { throwOnError: false });
+---
+
+<div class="py-2.5 text-center animation-delay-2000">
+  <span set:html={html} class="" />
+</div>

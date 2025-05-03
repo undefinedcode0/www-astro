@@ -1,0 +1,65 @@
+---
+import Chip from '@/components/Chip.astro';
+import Copy from '@/components/Copy.astro';
+import DashedLine from '@/components/common/DashedLine.astro';
+import Hero from '@/components/index/Hero.astro';
+import Canada from '@/components/icons/Canada.astro';
+import Link from '@/components/common/Link.astro';
+import ContactForm from '@/components/index/ContactForm.astro';
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="undefinedcode" description="Index | undefined">
+  <Hero />
+  <DashedLine width="20ch" class="scroll-dashed unblur-in" />
+
+  <article class="flex flex-col gap-3 max-w-[60ch]">
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-100">
+      <span class="font-thin text-text/25 w-[3ch]">0x1</span>About
+    </h1>
+    <p>he/him &bull; EST</p>
+    <p class="flex flex-wrap items-center text-text unblur-in animation-delay-200">
+      I'm a relaxed and introverted individual from
+      <Chip class="mx-1 bg-a1/50 h-[1.4em]">
+        <span class="pl-[0.5px]"><Canada /></span> UnitedStates
+      </Chip>
+
+      I go by <b class="mx-1 font-extrabold">undefined or undefinedcode</b> online.
+    </p>
+    <p class="unblur-in animation-delay-200">
+      I love programming and design. You will learn way more about me on <Link href="/about">about</Link>
+    </p>
+    <DashedLine width="40ch" class="mt-5 unblur-in animation-delay-300" />
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-400">
+      <span class="font-thin text-text/25 w-[3ch]">0x2</span>Work
+    </h1>
+    <p class="unblur-in animation-delay-500">
+      I work with many languages, including <Chip class="bg-a1/50">C++, C & C#</Chip>
+    </p>
+    <p class="unblur-in animation-delay-600">
+      I've also worked with other languages such as <Chip class="bg-a2/50">JavaScript</Chip>
+      <Chip class="bg-a1/50">Python & Assembly</Chip>
+      and other web development languages with frameworks such as
+      <Chip class="bg-a4/50">Vue</Chip>
+      <Chip class="bg-a2/50">Svelte</Chip>
+      <Chip class="bg-a1/50">Astro</Chip>
+    </p>
+    <p class="unblur-in animation-delay-600">
+      You can view <Link href="/projects">my projects</Link> on my
+      <Link href="https://github.com/undefinedcode0" external>GitHub</Link>
+    </p>
+    <DashedLine width="60ch" class="mt-5 unblur-in animation-delay-700" />
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-800">
+      <span class="font-thin text-text/25 w-[3ch]">0x3</span>Contact
+    </h1>
+    <p class="unblur-in animation-delay-900">Feel free to email me or shoot me a dm on Discord.</p>
+    <p class="unblur-in animation-delay-900">
+      Email me at <Copy text="anoncyn@proton.me">anoncyn@proton.me</Copy>
+      <br />
+      Discord <Copy text="undefinedcode">@undefinedcode</Copy>
+    </p>
+    <h1 class="flex gap-1 text-lg font-zodiak text-text unblur-in animation-delay-1000">
+      <span class="font-thin text-text/25 w-[1ch]">&</span>Say anything
+    </h1>
+  </article>
+</Layout>

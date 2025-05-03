@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from '@/components/FormattedDate.astro';
+import Layout from './Layout.astro';
+import DashedLine from '@/components/common/DashedLine.astro';
+
+import { ArrowLeft } from 'astro-feather-icons2';
+
+type Props = CollectionEntry<'writing'>['data'];
+
+const { title, description, pubDate, updatedDate } = Astro.props;
+---
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
+  integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP"
+  crossorigin="anonymous"
+/>
+
+<Layout title={title} description={description} dim>
+  <a
+    class="grid overflow-hidden place-items-center mt-10 rounded-sm duration-100 text-text size-8 bg-text/10 smooth-md hover:bg-text/20"
+    aria-label="Back"
+    href="/writing">
+    <span class="opacity-70">
+      <ArrowLeft size="16" />
+    </span>
+  </a>
+  <h1 transition:name={`post ${title}`} class="py-6 text-3xl font-light font-zodiak text-text">{title}</h1>
+  <p class="unblur-in animation-delay-50">
+    <span class:list={[updatedDate ? 'text-text/30' : 'text-text/100']}>
+      <FormattedDate date={pubDate} />
+    </span>
+    {
+      updatedDate && (
+        <>
+          <span class="text-text/30">&bull; updated</span>
+          <span class="text-text">
+            <FormattedDate date={updatedDate} />
+          </span>
+        </>
+      )
+    }
+    <span class="block">
+      {description}
+    </span>
+  </p>
+  <DashedLine width="100%" />
+  <article class="prose">
+    <slot />
+  </article>
+</Layout>

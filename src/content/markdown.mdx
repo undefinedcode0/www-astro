@@ -1,0 +1,140 @@
+---
+title: example markdown
+description: a string
+pubDate: 'Apr 20 2025'
+updatedDate: 'Apr 21 2025'
+---
+
+import Latex from '@/components/Latex.astro';
+import Link from '@/components/common/Link.astro';
+
+<Latex formula="\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}" />
+
+# heading 1
+
+[link back](/writing)
+
+[link extern](https://github.com/tnixc/website-v7)
+
+## heading 2
+
+### heading 3
+
+#### heading 4
+
+---
+
+**bold text**
+
+_italic text_
+
+**_bold and italic text_**
+
+~~strikethrough~~
+
+> blockquote
+>
+> > nested blockquote
+
+---
+
+unordered list:
+
+- item 1
+- item 2
+  - subitem 2a
+  - subitem 2b
+    - subsubitem 2b-i
+
+ordered list:
+
+1. first
+2. second
+   1. subsecond
+   2. subsecond 2
+3. third
+
+task list:
+
+- [x] task complete
+- [ ] task incomplete
+
+---
+
+code block:
+
+```rust
+fn main() {
+    println!("hello, world!");
+}
+```
+
+inline code: `let x = 42`
+
+---
+
+horizontal rule:
+
+---
+
+link: [openai](https://openai.com)
+
+<Link href="https://openai.com" external>
+  openai
+</Link>
+image: ![sample image](https://cdn.cosmos.so/16d3fe3c-82d7-4f85-bfa6-9c8840e3c79f?format=jpeg)
+
+---
+
+tables:
+
+| header 1 | header 2 | header 3 |
+| :------: | :------: | :------: |
+|  row 1   |   data   |   more   |
+|  row 2   |   data   |   more   |
+
+---
+
+math (inline):
+
+<Latex formula="E = mc^2" />
+
+math (block):
+
+<Latex formula="\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}" />
+
+another block:
+
+<Latex formula="a^2 + b^2 = c^2" />
+
+matrix:
+
+<Latex formula="\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}" />
+
+system of equations:
+
+<Latex formula="\begin{cases} x + y = 1\\ x - y = 3 \end{cases}" />
+
+aligned equations:
+
+<Latex formula="\begin{aligned} f(x) &= x^2 + 3x + 2\\ f'(x) &= 2x + 3 \end{aligned}" />
+
+limits and sums:
+
+<Latex formula="\lim_{x \to 0} \frac{\sin x}{x} = 1" />
+
+<Latex formula="\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}" />
+
+---
+
+footnote:
+
+here is a sentence with a footnote[^1].
+
+[^1]: this is the footnote text.
+
+---
+
+html passthrough:
+
+<div style="color: red;">this text is red</div>

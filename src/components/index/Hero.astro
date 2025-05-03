@@ -1,0 +1,56 @@
+<div class="flex gap-7 items-center pl-2 unblur-in-no-move-opacity">
+  <div class="spinny size-12"></div>
+  <h1
+    transition:name="hero"
+    transition:animate="fade"
+    class="italic font-thin font-zodiak text-text/10 text-[clamp(26px,20vmin,90px)]">
+    undefined
+  </h1>
+</div>
+<style is:inline>
+  .spinny {
+    animation: spinny 10s ease-in-out infinite;
+    aspect-ratio: 1/1;
+    transform-origin: center;
+    transform: rotate(45deg);
+    opacity: 0.2;
+  }
+
+  @keyframes spinny {
+    0% {
+      transform: rotate(45deg);
+      border-radius: 8px;
+      background-color: var(--color-a1);
+    }
+    20% {
+      transform: rotate(225deg) scale(1.2);
+      border-radius: 50%;
+      background-color: var(--color-a2);
+      animation-timing-function: ease-in-out;
+    }
+    40% {
+      transform: rotate(315deg);
+      border-radius: 8px;
+      background-color: var(--color-a3);
+      animation-timing-function: ease-in-out;
+    }
+    60% {
+      transform: rotate(405deg) scale(1.2);
+      border-radius: 50%;
+      background-color: var(--color-a2);
+      animation-timing-function: ease-in-out;
+    }
+    80% {
+      transform: rotate(585deg);
+      border-radius: 8px;
+      background-color: var(--color-a1);
+      animation-timing-function: ease-in-out;
+    }
+    100% {
+      transform: rotate(675deg);
+      border-radius: 8px;
+      background-color: var(--color-a1);
+      animation-timing-function: ease-in-out;
+    }
+  }
+</style>

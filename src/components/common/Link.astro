@@ -1,0 +1,65 @@
+---
+interface Props {
+  class?: string;
+  external?: boolean;
+  href: string;
+}
+
+const { class: className, external = false, href } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'text-link relative duration-200 w-fit inline-block overflow-visible',
+    "after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-link/50 after:transition-all after:duration-200 after:ease-in-out after:-z-10",
+    'hover:after:h-[0.5em] hover:after:bottom-[3px] hover:after:opacity-30 dark:hover:after:opacity-80',
+    external ? 'pr-1 after:right-1 group' : 'after:right-0',
+    className,
+  ]}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}>
+  <slot />
+  {
+    external && (
+      <span class="hover-opacity">
+        <svg
+          class:list={[
+            'absolute top-1 -right-1 transition-transform duration-200 ease-in-out group-hover:translate-x-[2px] group-hover:-translate-y-[2px]',
+          ]}
+          width="9"
+          height="9"
+          viewBox="0 0 9 9"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <g stroke="var(--color-link)" stroke-linecap="square">
+            <path
+              d="m2.625 6.375 3.518-3.518"
+              style="stroke:currentColor;stroke:currentColor;stroke-opacity:1"
+              stroke-linejoin="round"
+            />
+            <path d="M2.625 2.625h3.75v3.75" style="stroke:currentColor;stroke:currentColor;stroke-opacity:1" />
+          </g>
+        </svg>
+      </span>
+    )
+  }
+</a>
+
+<style>
+  a {
+    vertical-align: bottom;
+  }
+  span.hover-opacity {
+    opacity: 0.5 !important;
+    transition: 0.2s ease !important;
+  }
+
+  span.hover-opacity {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        opacity: 1 !important;
+      }
+    }
+  }
+</style>

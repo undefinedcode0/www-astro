@@ -1,0 +1,233 @@
+---
+import DashedLine from '@/components/common/DashedLine.astro';
+import FancyArrow from '@/components/icons/FancyArrow.astro';
+import Link from '@/components/common/Link.astro';
+import { ArrowLeft, ArrowRight } from 'astro-feather-icons2';
+
+const gridRows = 5;
+const gridCols = 20;
+const totalArrows = gridRows * gridCols;
+
+// @ts-ignore
+const commit = BUILD_COMMIT;
+// @ts-ignore
+const date_unix = new Date(Date.parse(BUILD_DATE));
+const date = date_unix.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+---
+
+<footer class="overflow-hidden py-12 w-full h-96 max-w-screen" transition:name="footer">
+  <div id="arrow-box">
+    <div class="arrow-grid">
+      {
+        Array.from({ length: totalArrows }).map((_, i) => (
+          <div class="arrow-wrapper text-text">
+            <FancyArrow />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <DashedLine width="100%" class="my-5" />
+  <div class="flex flex-col flex-wrap gap-3">
+    <p class="flex flex-wrap gap-4 items-center">
+      <Link href="/rss.xml">RSS</Link>
+      <span class="text-text/20">&bull;</span>
+      <span class="flex flex-wrap gap-3">
+        <Link href="https://github.com/undefinedcode0" external>Github</Link>
+        <Link href="https://bsky.app/profile/undefinedcode.bsky.social" external>Bluesky</Link>
+        <Link href="https://twitter.com/undefinedcode0" external>Twitter</Link>
+      </span>
+    </p>
+    <p>
+      my website | Built with &lt;3 and Astro | Updated <span class="font-mono text-[14px]">{date}</span> | Commit <span
+        class="font-mono text-[14px]">{commit}</span
+      > | <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .arrow-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    row-gap: 16px;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .arrow-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center;
+  }
+
+  .arrow-wrapper :global(svg) {
+    width: 16px;
+    height: 16px;
+    transform-origin: center;
+    /* transition: opacity 0.2s ease, color 0.2s ease; */
+    opacity: 0;
+  }
+</style>
+
+<script>
+  let lastMouseEvent: MouseEvent | null = null;
+
+  document.addEventListener('astro:page-load', () => {
+    const arrowWrappers = document.querySelectorAll('.arrow-wrapper');
+    const footer = document.querySelector('#arrow-box');
+
+    if (!footer) {
+      return;
+    }
+
+    // Spring physics configuration
+    const springs = Array.from(arrowWrappers).map(() => ({
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+    }));
+
+    const springStrength = 0.07; // How quickly arrows move toward target
+    const damping = 0.8; // Higher = less oscillation
+    const maxOffset = 40; // Maximum distance arrows can move from origin
+
+    function updateArrows(e: MouseEvent | { clientX: number; clientY: number }) {
+      if (!footer) {
+        return;
+      }
+      const footerRect = footer.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      const isNearFooter =
+        mouseY > footerRect.top - 100 &&
+        mouseY < footerRect.bottom + 100 &&
+        mouseX > footerRect.left - 100 &&
+        mouseX < footerRect.right + 100;
+
+      const footerCenterX = footerRect.left + footerRect.width / 2;
+      const footerCenterY = footerRect.top + footerRect.height / 2;
+      const distanceThreshold = Math.max(footerRect.width, footerRect.height) * 0.75;
+      const distanceToCenter = Math.sqrt((mouseX - footerCenterX) ** 2 + (mouseY - footerCenterY) ** 2);
+
+      // Process each arrow
+      arrowWrappers.forEach((wrapper, index) => {
+        const arrowRect = wrapper.getBoundingClientRect();
+        const arrowX = arrowRect.left + arrowRect.width / 2;
+        const arrowY = arrowRect.top + arrowRect.height / 2;
+        const arrow = wrapper.querySelector('svg');
+        if (!arrow) {
+          return;
+        }
+
+        // Target calculation (mouse or center)
+        let targetX, targetY;
+        if (distanceToCenter > distanceThreshold || !isNearFooter) {
+          targetX = footerCenterX;
+          targetY = footerCenterY;
+        } else {
+          targetX = mouseX;
+          targetY = mouseY;
+        }
+
+        // Calculate angle for rotation
+        const dx = targetX - arrowX;
+        const dy = targetY - arrowY;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+        const spring = springs[index];
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        let nudgeDirectionX = dx;
+        let nudgeDirectionY = dy;
+
+        const dirMagnitude = Math.max(0.0001, Math.sqrt(dx * dx + dy * dy));
+        nudgeDirectionX /= dirMagnitude;
+        nudgeDirectionY /= dirMagnitude;
+
+        const nudgeMagnitude = Math.min(distance * 0.05, maxOffset);
+
+        const targetOffsetX = nudgeDirectionX * nudgeMagnitude;
+        const targetOffsetY = nudgeDirectionY * nudgeMagnitude;
+
+        const forceX = (targetOffsetX - spring.x) * springStrength;
+        const forceY = (targetOffsetY - spring.y) * springStrength;
+
+        spring.vx = spring.vx * damping + forceX;
+        spring.vy = spring.vy * damping + forceY;
+
+        const currentVelocity = Math.sqrt(spring.vx * spring.vx + spring.vy * spring.vy);
+        const maxVelocity = 2.0;
+
+        if (currentVelocity > maxVelocity) {
+          const scaleFactor = maxVelocity / currentVelocity;
+          spring.vx *= scaleFactor;
+          spring.vy *= scaleFactor;
+        }
+
+        // Update position with velocity
+        spring.x += spring.vx;
+        spring.y += spring.vy;
+
+        const positionMagnitude = Math.sqrt(spring.x * spring.x + spring.y * spring.y);
+        if (positionMagnitude > maxOffset) {
+          const posScaleFactor = maxOffset / positionMagnitude;
+          spring.x *= posScaleFactor;
+          spring.y *= posScaleFactor;
+        }
+
+        // Calculate distance for opacity
+        const maxDistance =
+          Math.sqrt(footerRect.width * footerRect.width + footerRect.height * footerRect.height) / 1.5;
+
+        // Opacity calculation
+        const optimalDistanceRatio = 0;
+        const normalizedDistance = distance / maxDistance;
+        const opacity = isNearFooter ? Math.max(0.2, 1 - Math.abs(normalizedDistance - optimalDistanceRatio) * 2) : 0.2;
+
+        // Apply transformations
+        arrow.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg) `;
+        arrow.style.color = `var(--color-link)`;
+        arrow.style.opacity = opacity.toFixed(2);
+      });
+    }
+
+    // Track mouse movement
+    document.addEventListener('mousemove', updateArrows);
+
+    // Animation loop for continuous spring updates
+    function animateArrows() {
+      // Create a synthetic mouse event using the last position
+      const lastEvent = lastMouseEvent || {
+        clientX: window.innerWidth / 2,
+        clientY: window.innerHeight * 2,
+      };
+
+      updateArrows(lastEvent);
+      requestAnimationFrame(animateArrows);
+    }
+
+    // Store last mouse position for animation loop
+    window.addEventListener('mousemove', (e) => {
+      lastMouseEvent = e;
+    });
+
+    // Start animation loop
+    requestAnimationFrame(animateArrows);
+
+    // Initialize with default position
+    updateArrows({
+      clientX: window.innerWidth / 2,
+      clientY: window.innerHeight * 2,
+    } as MouseEvent);
+  });
+</script>

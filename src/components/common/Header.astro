@@ -1,0 +1,58 @@
+---
+import DashedLine from '@/components/common/DashedLine.astro';
+import ThemeToggle from '@/components/common/ThemeToggle.astro';
+import { Edit3, Feather, Grid, Home } from 'astro-feather-icons2';
+// Ensure ViewTransitions is imported and enabled in your main layout, not typically here.
+// import { ViewTransitions } from 'astro:transitions';
+
+const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, '');
+const subpath = pathname.match(/[^/]+/g);
+const isActive = (href: string) => href === pathname || href === `/${subpath?.[0] || ''}`;
+---
+
+<header class="sticky top-0 z-40 w-full rounded-md bg-bg smooth-md">
+  <div class="flex justify-between items-center py-2 px-2.5 sm:px-0 sm:pr-2.5">
+    <nav class="flex gap-4 pl-0.5 text-sm sm:gap-11 sm:px-5 text-text">
+      <a class="relative font-light tracking-wider uppercase font-zodiak" data-active={isActive('/')} href="/">
+        <span class="hidden text-center sm:block w-[6ch]"> Index </span>
+        <Home class="block sm:hidden" size="20" />
+      </a>
+      <a
+        class="relative font-light tracking-wider uppercase font-zodiak"
+        data-active={isActive('/projects')}
+        href="/projects">
+        <span class="hidden text-center sm:block w-[9ch]"> Projects </span>
+        <Grid class="block sm:hidden" size="20" />
+      </a>
+      <a
+        class="relative font-light tracking-wider uppercase font-zodiak"
+        data-active={isActive('/writing')}
+        href="/writing">
+        <span class="hidden text-center sm:block w-[8ch]"> Writing </span>
+        <Edit3 class="block sm:hidden" size="20" />
+      </a>
+      <a
+        class="relative font-light tracking-wider uppercase font-zodiak"
+        data-active={isActive('/about')}
+        href="/about">
+        <span class="hidden text-center sm:block w-[6ch]"> About </span>
+        <Feather class="block sm:hidden" size="20" />
+      </a>
+    </nav>
+    <DashedLine class="opacity-0" width="100%" />
+    <ThemeToggle />
+  </div>
+</header>
+<style>
+  a[data-active='true'] {
+    font-weight: 400;
+  }
+  a[data-active='true']::before {
+    position: absolute;
+    content: '';
+    inset: -8px;
+    background-color: --alpha(var(--color-text) / 8%);
+    border-radius: 8px;
+    view-transition-name: nav-active;
+  }
+</style>

@@ -1,0 +1,37 @@
+---
+import DashedLine from '@/components/common/DashedLine.astro';
+import FormattedDate from '@/components/FormattedDate.astro';
+import Layout from '@/layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('writing')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="Writing" description="Writing | undefinedcode">
+  <div class="flex gap-7 items-center unblur-in-no-move-opacity">
+    <div transition:name="hero" transition:animate="fade">
+      <h1 class="italic font-thin font-zodiak text-text/10 text-[clamp(26px,20vmin,90px)]" id="title-text">Writing</h1>
+    </div>
+  </div>
+  <DashedLine width="100%" />
+  <ul class="flex flex-col gap-4 py-10">
+    {
+      posts.map((post, index) => (
+        <>
+          <a class="block my-4" href={`/writing/${post.id}/`}>
+            <h1 class="text-3xl font-light font-zodiak text-text" transition:name={`post ${post.data.title}`}>
+              {post.data.title}
+            </h1>
+            <p class:list={`unblur-in animation-delay-${index * 100}ms`}>
+              <span class="inline-block">
+                <FormattedDate date={post.data.pubDate} />
+              </span>
+              | {post.data.description}
+            </p>
+          </a>
+          <DashedLine width="100%" class={`unblur-in animate-delay-${index * 100 + 50}ms`} />
+        </>
+      ))
+    }
+  </ul>
+</Layout>

@@ -1,0 +1,18 @@
+---
+import BlogPost from '@/layouts/BlogPost.astro';
+import { getEntry, render } from 'astro:content';
+const req = Astro.request;
+const id = req.url.split('/').slice(2)[2]; // FIXME: there's gotta be a better way to do this
+if (id === undefined) {
+  return Astro.redirect('/404');
+}
+const post = await getEntry('writing', id);
+if (post === undefined) {
+  return Astro.redirect('/404');
+}
+const { Content } = await render(post);
+---
+
+<BlogPost {...post.data}>
+  <Content />
+</BlogPost>

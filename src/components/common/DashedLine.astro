@@ -1,0 +1,44 @@
+---
+interface Props {
+  width?: string;
+  class?: string;
+  shrink?: boolean;
+}
+const { width, class: className, shrink } = Astro.props;
+let s;
+if (width) {
+  s = `width: ${width};`;
+} else {
+  s = '';
+}
+---
+
+<hr
+  transition:animate="none"
+  class:list={['h-px border-0 bg-transparent inline-block max-w-full', className]}
+  style={s}
+/>
+
+<style is:global>
+  hr {
+    background-image: repeating-linear-gradient(
+      to right,
+      --alpha(var(--color-text) / 20%) 0px,
+      --alpha(var(--color-text) / 20%) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  }
+  .dark {
+    hr {
+      background-image: repeating-linear-gradient(
+        to right,
+        --alpha(var(--color-link) / 20%) 0px,
+        --alpha(var(--color-link) / 20%) 12px,
+        var(--color-link) 12px,
+        transparent 12px,
+        transparent 24px
+      );
+    }
+  }
+</style>

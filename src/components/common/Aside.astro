@@ -1,0 +1,76 @@
+---
+import StarrySky from '@/components/index/StarrySky.astro';
+
+type Props = {
+  dim?: boolean;
+  class?: string;
+};
+const { dim, class: className } = Astro.props;
+---
+
+<section
+  class:list={[
+    className,
+    'w-full flex-col gap-12 overflow-hidden rounded-md xl:max-w-[300px] mt-5',
+    dim ? 'xl:h-[600px] h-[100px]' : 'h-[200px] xl:h-[600px]',
+  ]}>
+  <div
+    transition:name="aside-sky"
+    class:list={[
+      'relative h-full w-full duration-300 after:rounded-md after:absolute after:inset-0  after:shadow-[inset_0_0_0_2px_--alpha(var(--color-text)/20%)]',
+      dim ? 'md:opacity-10' : 'opacity-100 ',
+    ]}>
+    <div class="absolute inset-0" id="day">
+      <div class="w-full h-full noise">
+        <div class="overflow-hidden absolute inset-0 opacity-0 dark:opacity-100" id="night">
+          <StarrySky />
+        </div>
+      </div>
+      <!-- <div class="w-full p-6 shadow-[inset_0_0_0_2px_--alpha(var(--color-text)/20%)]"></div> -->
+    </div>
+  </div>
+</section>
+
+<style>
+  #day {
+    background: radial-gradient(
+      circle at center top,
+      #6391cb 0%,
+      #b3caed 50%,
+      #edd9db 75%,
+      #f3bebc 87.5%,
+      #c5afba 93.75%,
+      #80a9bf 100%
+    );
+    background: radial-gradient(
+      circle at center top in lch,
+      color(display-p3 0.427 0.565 0.776) 0%,
+      color(display-p3 0.718 0.788 0.918) 50%,
+      color(display-p3 0.918 0.855 0.859) 75%,
+      color(display-p3 0.922 0.753 0.741) 87.5%,
+      color(display-p3 0.757 0.69 0.725) 93.75%,
+      color(display-p3 0.533 0.655 0.737) 100%
+    );
+  }
+  /* Rectangle 5 */
+  #night {
+    background: radial-gradient(
+      circle at center top,
+      #010112 0%,
+      #000e36 50%,
+      #001f55 75%,
+      #293762 97.5%,
+      #2c2d62 100.75%,
+      #312b6d 110%
+    );
+    background: radial-gradient(
+      circle at center top in lch,
+      color(display-p3 0.004 0.004 0.067) 0%,
+      color(display-p3 0.008 0.055 0.204) 50%,
+      color(display-p3 0 0.118 0.322) 75%,
+      color(display-p3 0.173 0.216 0.373) 97.5%,
+      color(display-p3 0.173 0.176 0.373) 100.75%,
+      color(display-p3 0.188 0.173 0.412) 110%
+    );
+  }
+</style>

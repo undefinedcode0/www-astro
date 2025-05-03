@@ -1,0 +1,114 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import DashedLine from '@/components/common/DashedLine.astro';
+import Link from '@/components/common/Link.astro';
+import Chip from '@/components/Chip.astro';
+
+import { Image } from 'astro:assets';
+import coffee_img from '@/images/coffee.webp';
+import typography_img from '@/images/typography.webp';
+import know_img from '@/images/k.webp';
+---
+
+<Layout title="About" description="About me | tnixc.space">
+  <div class="flex gap-7 items-center pl-2 unblur-in-no-move-opacity">
+    <div transition:name="hero" transition:animate="fade">
+      <h1 class="italic font-thin font-zodiak text-text/10 text-[clamp(26px,20vmin,90px)]" id="title-text">About</h1>
+    </div>
+  </div>
+
+  <DashedLine width="100%" />
+
+  <article class="flex flex-col gap-3 max-w-[60ch]">
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-100">
+      <span class="font-thin text-text/25 w-[3ch]">0x1</span>Going outside
+    </h1>
+    <p class="unblur-in animation-delay-150">
+      I love photography. I frequently go outside on many locations near me or when i have the chance to go out. I enjoy
+      cycling, and trying out new stuff.
+    </p>
+    <DashedLine width="45ch" class="mt-5 unblur-in animation-delay-200" />
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-250">
+      <span class="font-thin text-text/25 w-[3ch]">0x2</span>Uses
+    </h1>
+    <p class="unblur-in animation-delay-300">
+      My daily driver is <Chip class="bg-a2/50">Windows 11 LTSC</Chip> on an Latitude 7390, and I use
+      <Chip class="bg-a3/50"> scoop</Chip>
+      to manage my apps. I'm a big fan of <Chip class="bg-a1/50">Neovim</Chip> for editing but also use Zed and Notepad++.
+      As for hardware, it isn't really powerful, but it's good enough for my needs, and I'm happy with it.
+    </p>
+
+    <DashedLine width="50ch" class="mt-5 unblur-in animation-delay-350" />
+
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-400">
+      <span class="font-thin text-text/25 w-[3ch]">0x3</span>Programming
+    </h1>
+    <p class="unblur-in animation-delay-450">
+      I like working with the <Chip class="bg-a1/50">C Family</Chip>, I'm interested in systems programming, compilers,
+      and functional programming. I also write a lot of random CLI tools.
+    </p>
+
+    <DashedLine width="60ch" class="mt-5 unblur-in animation-delay-650" />
+
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-700">
+      <span class="font-thin text-text/25 w-[3ch]">0x4</span>Design Interests
+    </h1>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div>
+        <h2 class="text-lg font-zodiak text-text unblur-in animation-delay-750">UI Design</h2>
+        <p class="text-base unblur-in animation-delay-800">
+          I love detailed, functional interfaces with thoughtful micro-interactions. I spend a lot of time thinking
+          about UI.
+        </p>
+      </div>
+      <div>
+        <h2 class="text-lg font-zodiak text-text unblur-in animation-delay-950">Drawing & Digital Art</h2>
+        <p class="text-base unblur-in animation-delay-1000">
+          I draw digitally using <Chip class="bg-a4/50">Krita</Chip> and model with <Chip class="bg-a2/50">Blender</Chip
+          >.
+        </p>
+      </div>
+      <div
+        class="md:col-span-2 flex gap-4 bg-a2/10 rounded-md shadow-[0_0_0_8px_--alpha(var(--color-a2)/10%)] w-fit md:flex-row flex-col mt-4">
+        <span class="block overflow-hidden rounded-md bg-bg w-18 h-fit">
+          <Image
+            src={typography_img}
+            alt="typography"
+            width={155}
+            height={155}
+            class="mix-blend-multiply dark:mix-blend-color-dodge dark:invert"
+          />
+        </span>
+        <div class="flex-shrink w-fit">
+          <h2 class="text-lg font-zodiak text-text unblur-in animation-delay-850">Typography</h2>
+          <p class="flex gap-2 text-base unblur-in animation-delay-900">
+            <span>
+              I'm a type nerd who enjoys exploring different typefaces and their applications. Current favorites are <Chip
+                class="bg-a3/50">Zodiak</Chip
+              > and <Chip class="bg-a2/50">Berkeley Mono</Chip>. SF Pro is also the goat.
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <DashedLine width="65ch" class="mt-5 unblur-in animation-delay-1050" />
+
+    <h1 class="flex gap-1 pt-4 pb-3 text-2xl font-zodiak text-text unblur-in animation-delay-1100">
+      <span class="font-thin text-text/25 w-[3ch]">0x5</span>Other Passions
+    </h1>
+    <h2 class="text-lg font-zodiak text-text unblur-in animation-delay-1350">Movies, Webseries, and Anime</h2>
+    <p class="text-base unblur-in animation-delay-1400">
+      I watch sci-fi movies like "Time Trap", "Inception", "Interstellar", and "TRON: Legacy". But I may also watch
+      other series like "Breaking Bad", "House, M.D", and "Avatar: The Last Airbender". Current favourite is
+      <Chip class="bg-a4/50">Breaking Bad</Chip>. I also watch animes like <Chip class="bg-a2/50"
+        >Neon Genesis Evangelion</Chip
+      >.
+    </p>
+    <h2 class="text-lg font-zodiak text-text unblur-in animation-delay-1550">Video Games</h2>
+    <p class="text-base unblur-in animation-delay-1600">
+      I play all kinds of games, mainly rhythm games, and RPGs. Minecraft / osu!mania / omori / Roblox / Fortnite
+      (barely) / Far Cry 6 / Fallout 4 / Rec Room
+    </p>
+  </article>
+</Layout>

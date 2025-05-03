@@ -1,0 +1,80 @@
+---
+const projects = [
+  {
+    name: '✦ zen-wireframe',
+    href: 'https://github.com/undefinedcode0/zen-wireframe',
+    description:
+      'A fork of zen-wireframe (made by napuzu) maintained by me, with a focus on expanding theme variety, reviving the original design, and adding new features.',
+    linkStyle:
+      'text-transparent bg-clip-text bg-gradient-to-tr from-a1 via-a3 to-a2 text-xl after:bg-gradient-to-tr after:from-a1/50 after:via-a3/50 after:to-a2/50',
+  },
+  {
+    name: 'install',
+    href: 'https://github.com/undefinedcode0/install',
+    description:
+      'A install script for Arch Linux that is meant to reduce the hassle of manually installing it, which SUPER WORKS.',
+  },
+  {
+    tag: 'website',
+    name: 'This website',
+    href: 'https://github.com/undefinedcode0/www-astro',
+  },
+  {
+    name: 'FileSorter',
+    href: 'https://github.com/undefinedcode0/FileSorter',
+    description:
+      'This app will organize files by user choice of media type, file extension, resolution, and more. You can to assign actions to sorted media, like changing label, renaming, adding metadata.',
+  },
+];
+
+import Layout from '@/layouts/Layout.astro';
+import DashedLine from '@/components/common/DashedLine.astro';
+import Link from '@/components/common/Link.astro';
+---
+
+<Layout title="Projects" description="Projects | undefinedcode">
+  <div class="flex gap-7 items-center unblur-in-no-move-opacity">
+    <div transition:name="hero" transition:animate="fade">
+      <h1 class="italic font-thin font-zodiak text-text/10 text-[clamp(26px,20vmin,90px)]" id="title-text">Projects</h1>
+    </div>
+  </div>
+  <DashedLine width="100%" />
+
+  {
+    projects.map((project, index) => {
+      switch (project.tag) {
+        case 'website':
+          return (
+            <>
+              <div class:list={['text-lg pt-8 unblur-in', `animation-delay-${index * 100}`]}>
+                <p>
+                  <Link class="mr-1 text-xl" href={project.href} external>
+                    {project.name}
+                  </Link>
+                  {' This is v7, v6 was built with '}
+                  <Link class="mr-1 text-xl" href="https://astro.build/" external>
+                    Astro
+                  </Link>
+                </p>
+              </div>
+              <DashedLine width="100%" class:list={[`unblur-in animation-delay-${index * 100}`]} />
+            </>
+          );
+        default:
+          return (
+            <>
+              <div class:list={['text-lg pt-8 unblur-in', `animation-delay-${index * 100}`]}>
+                <p>
+                  <Link class={project.linkStyle ? project.linkStyle : 'mr-1 text-xl'} href={project.href} external>
+                    {project.name}
+                  </Link>
+                  {project.description}
+                </p>
+              </div>
+              <DashedLine width="100%" class:list={[`unblur-in animation-delay-${index * 100}`]} />
+            </>
+          );
+      }
+    })
+  }
+</Layout>

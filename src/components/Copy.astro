@@ -1,0 +1,137 @@
+---
+interface Props {
+  text: string;
+  class?: string;
+}
+
+const { text, class: className } = Astro.props;
+---
+
+<span
+  class:list={['copy-wrapper inline-flex items-center cursor-pointer group relative text-link', className]}
+  data-copy-text={text}>
+  <slot />
+  <span class="inline-flex items-center ml-1 opacity-0 transition-all duration-200 copy-icon scale-25">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="hidden checkmark">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="copy-symbol">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  </span>
+</span>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const copyElements = document.querySelectorAll('.copy-wrapper');
+
+    copyElements.forEach((element) => {
+      element.addEventListener('click', async () => {
+        const textToCopy = element.getAttribute('data-copy-text');
+        if (!textToCopy) {
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+
+          const iconWrapper = element.querySelector('.copy-icon');
+          const copySymbol = element.querySelector('.copy-symbol');
+          const checkmark = element.querySelector('.checkmark');
+
+          // Show success state
+          if (iconWrapper && copySymbol && checkmark) {
+            iconWrapper.classList.add('opacity-100', 'scale-100', 'copied');
+            copySymbol.classList.add('hidden');
+            checkmark.classList.remove('hidden');
+
+            setTimeout(() => {
+              iconWrapper.classList.remove('opacity-100', 'scale-100');
+            }, 2000);
+            setTimeout(() => {
+              iconWrapper.classList.remove('copied');
+              copySymbol.classList.remove('hidden');
+              checkmark.classList.add('hidden');
+            }, 3000);
+          }
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+        }
+      });
+
+      // Show icon on hover
+      element.addEventListener('mouseenter', () => {
+        const iconWrapper = element.querySelector('.copy-icon');
+
+        if (iconWrapper) {
+          // Only show icon if not in "copied" state
+          if (!iconWrapper.classList.contains('copied')) {
+            iconWrapper.classList.add('opacity-100', 'scale-100');
+          }
+        }
+      });
+
+      element.addEventListener('mouseleave', () => {
+        const iconWrapper = element.querySelector('.copy-icon');
+        const checkmark = element.querySelector('.checkmark');
+
+        // Only hide the icon if we're not showing the checkmark
+        if (iconWrapper && !iconWrapper.classList.contains('copied')) {
+          iconWrapper.classList.remove('opacity-100', 'scale-100');
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .copy-icon {
+    transform-origin: center;
+    color: --alpha(var(--color-text) / 50%);
+    transition: all 200ms ease-in-out;
+  }
+
+  .copy-wrapper {
+    transform-origin: center;
+    position: relative;
+    transition: all 200ms ease-in-out;
+    text-decoration-color: --alpha(var(--color-link) / 20%);
+  }
+
+  .copy-wrapper:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-decoration-color: --alpha(var(--color-link) / 20%);
+    text-underline-offset: 5px;
+  }
+
+  /* Ensure icon transitions are smooth */
+  .copy-symbol,
+  .checkmark {
+    top: -5px;
+    position: absolute;
+    transition: opacity 150ms ease-in-out;
+    transform-origin: center;
+  }
+</style>
