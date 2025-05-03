@@ -8,5 +8,3 @@
 - astro content
 
 ---
-
-old version can be found at [v6.tnixc.space](https://v6.tnixc.space)
