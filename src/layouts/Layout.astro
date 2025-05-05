@@ -15,11 +15,27 @@ interface Props {
 const { title, description, dim: isDim, class: classList } = Astro.props;
 
 const themeCookie = Astro.cookies.get('theme');
-const currentTheme = themeCookie?.value === 'dark' ? 'dark' : 'light'; // Default to light if no cookie
-const themeClass = currentTheme === 'dark' ? 'dark' : '';
+let currentTheme = themeCookie?.value || 'system';
+const themeClass = currentTheme === 'dark' ? 'dark' : currentTheme === 'system' ? 'system' : '';
+
+// wow so much typescript... so safe
+const validFonts = ['sans', 'serif', 'mono'] as const;
+type FontType = (typeof validFonts)[number];
+const defaultFont = 'serif' as FontType;
+const fontClassMap: Record<FontType, string> = {
+  sans: 'font-inter',
+  serif: 'font-crimson',
+  mono: 'font-mono',
+};
+const fontCookie = Astro.cookies.get('font')?.value;
+
+let currentFont: FontType =
+  fontCookie && validFonts.includes(fontCookie as FontType) ? (fontCookie as FontType) : defaultFont;
+
+const fontClass = fontClassMap[currentFont];
 ---
 
-<html lang="en" class:list={[themeClass]}>
+<html lang="en" class:list={[themeClass, fontClass]}>
   <head>
     <BaseHead {title} {description} />
     <ClientRouter fallback="none" />
@@ -57,10 +73,10 @@ const themeClass = currentTheme === 'dark' ? 'dark' : '';
       </style>
     </OgImage>
   </head>
-  <body class="flex flex-col items-center p-5 sm:p-12 lg:p-20 text-text/70 font-crimson bg-bg">
+  <body class="flex flex-col items-center p-5 sm:p-12 lg:p-20 text-text/70 bg-bg">
     <Header />
     <div class="flex flex-wrap gap-20 w-full bg-bg">
-      <Aside class="top-20 xl:sticky" dim={isDim} transition:persist="aside" />
+      <Aside class="top-20 2xl:sticky" dim={isDim} transition:persist="aside" />
       <div class="max-w-full w-[80ch]">
         <main class:list={[classList]}>
           <slot />

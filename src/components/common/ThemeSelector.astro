@@ -1,0 +1,89 @@
+---
+import { Moon, Sun, Monitor } from 'astro-feather-icons2';
+// Read the cookie server-side and default to "system" if not set
+const themeCookie = Astro.cookies.get('theme');
+const initialTheme = themeCookie?.value || 'system';
+
+const themes = [
+  { name: 'system', icon: Monitor },
+  { name: 'light', icon: Sun },
+  { name: 'dark', icon: Moon },
+];
+---
+
+<div id="theme-selector" class="flex p-1 space-x-1 rounded-xl bg-text/10 w-fit shadow-md">
+  {
+    themes.map(({ name, icon: Icon }) => (
+      <button
+        data-theme={name}
+        title={`Set theme to ${name}`}
+        class:list={[
+          'theme-button inline-grid place-items-center text-text aspect-square size-8 smooth-md rounded-lg',
+          { 'bg-bg': initialTheme === name },
+          { 'hover:bg-text/10': initialTheme !== name },
+        ]}>
+        <Icon size="16" />
+      </button>
+    ))
+  }
+</div>
+
+<!-- <div id="theme-transition-overlay" class="fixed inset-0 pointer-events-none will-change-transform"></div> -->
+
+<script is:inline define:vars={{ initialTheme }}>
+  let currentTheme = initialTheme;
+
+  function updateButtons(selectedTheme) {
+    const themeButtons = document.querySelectorAll('.theme-button');
+    themeButtons.forEach((button) => {
+      const buttonTheme = button.dataset.theme;
+      if (buttonTheme === selectedTheme) {
+        button.classList.add('bg-bg'); // Active class uses background color for contrast
+        button.classList.remove('hover:bg-text/10');
+      } else {
+        button.classList.remove('bg-bg');
+        button.classList.add('hover:bg-text/10');
+      }
+    });
+  }
+
+  function setTheme(newTheme) {
+    if (newTheme === currentTheme) return; // Don't do anything if theme is the same
+
+    currentTheme = newTheme;
+
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('system');
+    } else if (newTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('system');
+    } else {
+      // system
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('system');
+    }
+
+    document.cookie = `theme=${newTheme};path=/;max-age=31536000;samesite=lax`;
+
+    updateButtons(newTheme);
+  }
+
+  // Initialize theme toggle
+  function initThemeSelector() {
+    const themeButtons = document.querySelectorAll('.theme-button');
+    themeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const newTheme = button.dataset.theme;
+        if (newTheme) {
+          setTheme(newTheme);
+        }
+      });
+    });
+
+    updateButtons(currentTheme);
+  }
+
+  initThemeSelector();
+  document.addEventListener('astro:page-load', initThemeSelector);
+</script>

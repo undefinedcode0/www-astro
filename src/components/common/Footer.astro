@@ -3,6 +3,8 @@ import DashedLine from '@/components/common/DashedLine.astro';
 import FancyArrow from '@/components/icons/FancyArrow.astro';
 import Link from '@/components/common/Link.astro';
 import { ArrowLeft, ArrowRight } from 'astro-feather-icons2';
+import ThemeSelector from '@/components/common/ThemeSelector.astro';
+import FontSelector from '@/components/common/FontSelector.astro';
 
 const gridRows = 5;
 const gridCols = 20;
@@ -33,7 +35,12 @@ const date = date_unix.toLocaleDateString('en-US', {
   </div>
   <DashedLine width="100%" class="my-5" />
   <div class="flex flex-col flex-wrap gap-3">
-    <p class="flex flex-wrap gap-4 items-center">
+    <div class="flex flex-wrap gap-3 items-center">
+      <ThemeSelector />
+      <span class="text-text/20">&bull;</span>
+      <FontSelector />
+    </div>
+    <p class="flex flex-wrap gap-3 items-center mt-5">
       <Link href="/rss.xml">RSS</Link>
       <span class="text-text/20">&bull;</span>
       <span class="flex flex-wrap gap-3">
@@ -42,13 +49,25 @@ const date = date_unix.toLocaleDateString('en-US', {
         <Link href="https://twitter.com/undefinedcode0" external>Twitter</Link>
       </span>
     </p>
-    <p>
-      my website | Built with &lt;3 and Astro | Updated <span class="font-mono text-[14px]">{date}</span> | Commit <span
-        class="font-mono text-[14px]">{commit}</span
-      > | <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
-    </p>
-    <p id="quote"></p>
   </div>
+  <p class="flex flex-col mt-5 lg:flex-row lg:gap-3">
+    <span>my website </span>
+    <span class="text-text/20">&bull;</span>
+    <span> Built with &lt;3 and Astro </span>
+    <span class="text-text/20">&bull;</span>
+    <span>
+      Updated <span class="font-mono text-[14px]">{date}</span>
+    </span>
+    <span class="text-text/20">&bull;</span>
+    <span> Commit <span class="font-mono text-[14px]">{commit}</span> </span>
+    <span class="text-text/20">&bull;</span>
+    <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
+    <span class="text-text/20">&bull;</span>
+    <Link href="https://cloud.umami.is/share/EHDxW1dO8DPxLZwL/undefinedcode.pages.dev" external class="-translate-y-px"
+      >Analytics</Link
+    >
+  </p>
+  <DashedLine width="100%" class="mt-5 mb-32" />
 </footer>
 
 <script>
