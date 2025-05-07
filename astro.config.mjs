@@ -69,26 +69,30 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     define: {
-      // These variables are replaced at build time.
       BUILD_COMMIT: JSON.stringify(commitHash.slice(0, 7)),
       BUILD_DATE: JSON.stringify(commitDate),
     },
     ssr: {
-      // Don’t bundle these modules—leave them as runtime requires.
       external: [
+        // core Node built-ins
+        'fs',
+        'fs/promises',
+        'path',
+        'url',
+        'child_process',
+        'vm',
+        'events',
+        'http',
+        'https',
+        'stream',
+        'zlib',
+        'buffer',
+        // jsdom (uses fs, path, etc.)
+        'jsdom',
+        // resvg native and JS bindings
         '@resvg/resvg-js',
         '@resvg/resvg-js-win32-x64-msvc',
-        // plus any Node built-ins you saw warnings for:
-        'fs',
-        'path',
-        'child_process',
       ],
-      // If you had previously used noExternal, you can clear or adjust it here.
-      noExternal: [],
-    },
-    // Exclude from dependency pre-bundling as well:
-    optimizeDeps: {
-      exclude: ['@resvg/resvg-js', '@resvg/resvg-js-win32-x64-msvc'],
     },
   },
 
