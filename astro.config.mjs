@@ -25,7 +25,7 @@ const commitDate = execSync('git log -1 --format=%cI').toString().trim();
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://tnixc.space',
+  site: 'https://undefinedcode.pages.dev',
   integrations: [
     mdx(),
     sitemap(),
@@ -72,6 +72,23 @@ export default defineConfig({
       // These variables are replaced at build time.
       BUILD_COMMIT: JSON.stringify(commitHash.slice(0, 7)),
       BUILD_DATE: JSON.stringify(commitDate),
+    },
+    ssr: {
+      // Don’t bundle these modules—leave them as runtime requires.
+      external: [
+        '@resvg/resvg-js',
+        '@resvg/resvg-js-win32-x64-msvc',
+        // plus any Node built-ins you saw warnings for:
+        'fs',
+        'path',
+        'child_process',
+      ],
+      // If you had previously used noExternal, you can clear or adjust it here.
+      noExternal: [],
+    },
+    // Exclude from dependency pre-bundling as well:
+    optimizeDeps: {
+      exclude: ['@resvg/resvg-js', '@resvg/resvg-js-win32-x64-msvc'],
     },
   },
 
