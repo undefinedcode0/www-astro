@@ -1,16 +1,16 @@
 @import 'tailwindcss';
 
 @font-face {
-  font-family: 'Crimson Pro';
-  src: url('/fonts/Crimson-Pro-Regular.woff2') format('woff2');
-  font-weight: 400;
+  font-family: 'source-serif-4';
+  src: url('/fonts/source-serif-4.woff2') format('woff2');
+  font-weight: 100 550;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Inter';
   src: url('/fonts/Inter-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-weight: 100 550;
   font-style: normal;
 }
 
@@ -85,25 +85,25 @@
   --color-a3: var(--themed-a3);
   --color-a4: var(--themed-a4);
 
-  --font-crimson: 'Crimson Pro', serif;
-  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-serif: 'source-serif-4', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
   --font-zodiak: 'Zodiak', serif;
   --font-mono: 'iAWriterMono', ui-monospace, monospace;
   --font-display--font-feature-settings: 'salt';
 }
 /* Example global.css */
-html.font-inter {
-  font-family: theme('fontFamily.inter');
+html.font-sans {
+  font-family: theme('fontFamily.sans');
 }
-html.font-crimson {
-  font-family: theme('fontFamily.crimson');
+html.font-serif {
+  font-family: theme('fontFamily.serif');
 }
 html.font-mono {
   font-family: theme('fontFamily.mono');
 }
 /* fallback */
-html:not(.font-inter):not(.font-crimson):not(.font-mono) {
-  font-family: theme('fontFamily.crimson');
+html:not(.font-sans):not(.font-serif):not(.font-mono) {
+  font-family: theme('fontFamily.serif');
 }
 
 @utility animation-delay-none {

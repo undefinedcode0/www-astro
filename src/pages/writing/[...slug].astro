@@ -1,15 +1,23 @@
 ---
 import BlogPost from '@/layouts/BlogPost.astro';
-import { getEntry, render } from 'astro:content';
-const req = Astro.request;
-const id = req.url.split('/').slice(2)[2]; // FIXME: there's gotta be a better way to do this
-if (id === undefined) {
-  return Astro.redirect('/404');
+import { getCollection, type CollectionEntry } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+
+// 1. Generate a page for each post in the 'writing' collection
+export const getStaticPaths = (async () => {
+  const writingEntries = await getCollection('writing');
+  return writingEntries.map((entry) => ({
+    params: { slug: entry.id }, // `slug` matches the file parameter `[...slug]`
+    props: { post: entry }, // Pass the full entry object as a prop
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: CollectionEntry<'writing'>;
 }
-const post = await getEntry('writing', id);
-if (post === undefined) {
-  return Astro.redirect('/404');
-}
+const { post } = Astro.props;
+
 const { Content } = await render(post);
 ---
 

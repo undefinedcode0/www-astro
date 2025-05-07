@@ -3,76 +3,109 @@ import Aside from '@/components/common/Aside.astro';
 import BaseHead from '@/components/common/BaseHead.astro';
 import Footer from '@/components/common/Footer.astro';
 import Header from '@/components/common/Header.astro';
-import { OgImage } from 'astro-opengraph-image/components';
-import { ClientRouter } from 'astro:transitions';
+// import { ClientRouter } from 'astro:transitions'; // Keep commented out for 'static' unless using view transitions explicitly
 
 interface Props {
   title: string;
   description: string;
   dim?: boolean;
-  class?: string;
+  class?: string; // For the <main> element
 }
 const { title, description, dim: isDim, class: classList } = Astro.props;
-
-const themeCookie = Astro.cookies.get('theme');
-let currentTheme = themeCookie?.value || 'system';
-const themeClass = currentTheme === 'dark' ? 'dark' : currentTheme === 'system' ? 'system' : '';
-
-// wow so much typescript... so safe
-const validFonts = ['sans', 'serif', 'mono'] as const;
-type FontType = (typeof validFonts)[number];
-const defaultFont = 'serif' as FontType;
-const fontClassMap: Record<FontType, string> = {
-  sans: 'font-inter',
-  serif: 'font-crimson',
-  mono: 'font-mono',
-};
-const fontCookie = Astro.cookies.get('font')?.value;
-
-let currentFont: FontType =
-  fontCookie && validFonts.includes(fontCookie as FontType) ? (fontCookie as FontType) : defaultFont;
-
-const fontClass = fontClassMap[currentFont];
 ---
 
-<html lang="en" class:list={[themeClass, fontClass]}>
-  <head>
-    <BaseHead {title} {description} />
-    <ClientRouter fallback="none" />
-    <OgImage>
-      <div id="main">
-        <div id="top">
-          <div id="box"></div>
-          <h1>{title}</h1>
-        </div>
-        <p>{description}</p>
-      </div>
-      <style is:inline>
-        #top {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
+<html lang="en">
+  {/* Theme and font classes will be added by the head script */}
+
+  <BaseHead {title} {description} />
+  {/* <ClientRouter fallback="swap" /> */}
+
+  {/* ===== Blocking Client-side Theme & Font Initialization Script ===== */}
+  {/* This runs before the body renders to prevent FOUC */}
+  <script is:inline>
+    (function () {
+      // --- Theme Handling ---
+      const themeStorageKey = 'theme';
+      const themeQuery = '(prefers-color-scheme: dark)';
+      const defaultTheme = 'system'; // Default if nothing is stored
+
+      function getThemeSetting() {
+        return localStorage.getItem(themeStorageKey) || defaultTheme;
+      }
+
+      function applyTheme(theme) {
+        const d = document.documentElement;
+        // Clear previous theme state classes
+        d.classList.remove('dark', 'light', 'system');
+
+        if (theme === 'dark') {
+          d.classList.add('dark');
+        } else if (theme === 'light') {
+          d.classList.add('light'); // Add 'light' class if your CSS needs it
+        } else {
+          // 'system'
+          d.classList.add('system'); // Mark that system preference is active
+          // Apply the *actual* system theme
+          if (window.matchMedia(themeQuery).matches) {
+            d.classList.add('dark');
+          } else {
+            // Optional: d.classList.add('light');
+          }
         }
-        #box {
-          height: 2rem;
-          width: 2rem;
-          background: #125eff;
-          border-radius: 50%;
-          display: flex;
-        }
-        #main {
-          height: 100%;
-          width: 100%;
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-        }
-        p {
-          opacity: 0.7;
-        }
-      </style>
-    </OgImage>
-  </head>
+      }
+
+      const currentThemeSetting = getThemeSetting();
+      applyTheme(currentThemeSetting);
+
+      // Add listener for system theme changes *only* if the stored setting is 'system'
+      // This ensures dynamic updates if the user changes OS theme while on the site
+      if (currentThemeSetting === 'system') {
+        const mediaQuery = window.matchMedia(themeQuery);
+        const handleSystemThemeChange = (e) => {
+          // Re-check storage in case user selected light/dark explicitly in another tab
+          if (localStorage.getItem(themeStorageKey) === 'system' || !localStorage.getItem(themeStorageKey)) {
+            const d = document.documentElement;
+            if (e.matches) {
+              d.classList.add('dark');
+              d.classList.remove('light'); // Ensure consistency
+            } else {
+              d.classList.remove('dark');
+              // Optional: d.classList.add('light');
+            }
+          }
+        };
+        mediaQuery.addEventListener('change', handleSystemThemeChange);
+      }
+
+      // --- Font Handling ---
+      const fontStorageKey = 'font';
+      const validFonts = ['sans', 'serif', 'mono'];
+      const defaultFont = 'serif'; // Default if nothing is stored or invalid
+      const fontClassMap = {
+        sans: 'font-sans',
+        serif: 'font-serif',
+        mono: 'font-mono',
+      };
+
+      function getFontSetting() {
+        const storedFont = localStorage.getItem(fontStorageKey);
+        return validFonts.includes(storedFont) ? storedFont : defaultFont;
+      }
+
+      function applyFont(font) {
+        const d = document.documentElement;
+        // Remove all possible font classes first
+        Object.values(fontClassMap).forEach((cls) => d.classList.remove(cls));
+        // Add the correct class
+        d.classList.add(fontClassMap[font]);
+      }
+
+      const currentFontSetting = getFontSetting();
+      applyFont(currentFontSetting);
+    })(); // IIFE to contain scope
+  </script>
+  {/* ================================================================= */}
+
   <body class="flex flex-col items-center p-5 sm:p-12 lg:p-20 text-text/70 bg-bg">
     <Header />
     <div class="flex flex-wrap gap-20 w-full bg-bg">

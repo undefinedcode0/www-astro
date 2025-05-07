@@ -21,7 +21,7 @@ const date = date_unix.toLocaleDateString('en-US', {
 });
 ---
 
-<footer class="overflow-hidden py-12 w-full h-96 max-w-screen" transition:name="footer">
+<footer class="overflow-hidden py-12 w-full max-w-screen" transition:name="footer">
   <div id="arrow-box">
     <div class="arrow-grid">
       {
@@ -45,35 +45,38 @@ const date = date_unix.toLocaleDateString('en-US', {
       <span class="text-text/20">&bull;</span>
       <span class="flex flex-wrap gap-3">
         <Link href="https://github.com/undefinedcode0" external>Github</Link>
-        <Link href="https://bsky.app/profile/undefinedcode.bsky.social" external>Bluesky</Link>
+        <Link href="https://bsky.app/profile/undefinedcode0.bsky.social" external>Bluesky</Link>
         <Link href="https://twitter.com/undefinedcode0" external>Twitter</Link>
       </span>
     </p>
+    <p class="flex flex-col mt-5 lg:flex-row lg:gap-3">
+      <span>my website </span>
+      <span class="text-text/20">&bull;</span>
+      <span> Built with &lt;3 and Astro </span>
+      <span class="text-text/20">&bull;</span>
+      <span>
+        Updated <span class="font-mono text-[14px]">{date}</span>
+      </span>
+      <span class="text-text/20">&bull;</span>
+      <span> Commit <span class="font-mono text-[14px]">{commit}</span> </span>
+      <span class="text-text/20">&bull;</span>
+      <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
+      <span class="text-text/20">&bull;</span>
+      <Link
+        href="https://cloud.umami.is/share/EHDxW1dO8DPxLZwL/undefinedcode.pages.dev"
+        external
+        class="-translate-y-px">Analytics</Link
+      >
+      <span class="flex gap-2 items-end sm:mr-0 sm:ml-auto">
+        <p id="quote"></p>
+      </span>
+    </p>
   </div>
-  <p class="flex flex-col mt-5 lg:flex-row lg:gap-3">
-    <span>my website </span>
-    <span class="text-text/20">&bull;</span>
-    <span> Built with &lt;3 and Astro </span>
-    <span class="text-text/20">&bull;</span>
-    <span>
-      Updated <span class="font-mono text-[14px]">{date}</span>
-    </span>
-    <span class="text-text/20">&bull;</span>
-    <span> Commit <span class="font-mono text-[14px]">{commit}</span> </span>
-    <span class="text-text/20">&bull;</span>
-    <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
-    <span class="text-text/20">&bull;</span>
-    <Link href="https://cloud.umami.is/share/EHDxW1dO8DPxLZwL/undefinedcode.pages.dev" external class="-translate-y-px"
-      >Analytics</Link
-    >
-  </p>
   <DashedLine width="100%" class="mt-5 mb-32" />
 </footer>
 
 <script>
-  // Fix: The script wasn't properly handling Astro page transitions,
-  // which is why the quote wasn't typing out sometimes
-  document.addEventListener('astro:page-load', () => {
+  const init = () => {
     const quoteElement = document.getElementById('quote');
 
     const quotes = [
@@ -127,7 +130,9 @@ const date = date_unix.toLocaleDateString('en-US', {
 
     // Run on every page load/transition
     typeQuote();
-  });
+  };
+
+  init();
 </script>
 
 <style>
@@ -160,7 +165,7 @@ const date = date_unix.toLocaleDateString('en-US', {
 <script>
   let lastMouseEvent: MouseEvent | null = null;
 
-  document.addEventListener('astro:page-load', () => {
+  const init = () => {
     const arrowWrappers = document.querySelectorAll('.arrow-wrapper');
     const footer = document.querySelector('#arrow-box');
 
@@ -309,5 +314,6 @@ const date = date_unix.toLocaleDateString('en-US', {
       clientX: window.innerWidth / 2,
       clientY: window.innerHeight * 2,
     } as MouseEvent);
-  });
+  };
+  init();
 </script>

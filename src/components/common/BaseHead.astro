@@ -2,6 +2,8 @@
 import { SITE_TITLE } from '@/consts';
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
+import { getImagePath } from 'astro-opengraph-images';
+
 import '@/styles/global.css';
 
 interface Props {
@@ -13,6 +15,8 @@ interface Props {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const { title, description } = Astro.props;
+const { url, site } = Astro;
+const ogImageUrl = getImagePath({ url, site });
 ---
 
 <!-- Global Metadata -->
@@ -24,7 +28,7 @@ const { title, description } = Astro.props;
 <meta name="generator" content={Astro.generator} />
 
 <!-- Font preloads -->
-<link rel="preload" href="/fonts/Crimson-Pro-Regular.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/Zodiak-Variable.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="/fonts/Zodiak-VariableItalic.woff2" as="font" type="font/woff2" crossorigin />
@@ -43,6 +47,8 @@ const { title, description } = Astro.props;
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 
+<meta property="og:image" content={ogImageUrl} />
+
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
@@ -50,5 +56,5 @@ const { title, description } = Astro.props;
 <meta property="twitter:description" content={description} />
 
 <!-- scripts -->
-<script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="3b9d1778-d27d-4f6e-b8f2-c02c6075cc29"
+<script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="d41f775b-3a39-4ed9-b68a-5afe73974f01"
 ></script>
