@@ -11,28 +11,28 @@ const isActive = (href: string) => href === pathname || href === `/${subpath?.[0
   <div class="flex justify-between items-center py-2 px-2.5 sm:px-0 sm:pr-2.5">
     <nav class="flex gap-4 text-sm sm:gap-11 sm:px-5 text-text">
       <a class="relative font-light tracking-wider uppercase font-zodiak" data-active={isActive('/')} href="/">
-        <span class="hidden text-center sm:block w-[6ch]"> Home </span>
+        <span style="user-select: none;" class="hidden text-center sm:block w-[6ch]"> Home </span>
         <Home class="block sm:hidden" size="20" />
       </a>
       <a
         class="relative font-light tracking-wider uppercase font-zodiak"
         data-active={isActive('/projects')}
         href="/projects">
-        <span class="hidden text-center sm:block w-[9ch]"> Projects </span>
+        <span style="user-select: none;" class="hidden text-center sm:block w-[9ch]"> Projects </span>
         <Grid class="block sm:hidden" size="20" />
       </a>
       <a
         class="relative font-light tracking-wider uppercase font-zodiak"
         data-active={isActive('/writing')}
         href="/writing">
-        <span class="hidden text-center sm:block w-[8ch]"> Writing </span>
+        <span style="user-select: none;" class="hidden text-center sm:block w-[8ch]"> Writing </span>
         <Edit3 class="block sm:hidden" size="20" />
       </a>
       <a
         class="relative font-light tracking-wider uppercase font-zodiak"
         data-active={isActive('/about')}
         href="/about">
-        <span class="hidden text-center sm:block w-[6ch]"> About </span>
+        <span style="user-select: none;" class="hidden text-center sm:block w-[6ch]"> About </span>
         <Feather class="block sm:hidden" size="20" />
       </a>
     </nav>
