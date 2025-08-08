@@ -12,8 +12,6 @@ import rehypeSlug from 'rehype-slug';
 
 import tailwindcss from '@tailwindcss/vite';
 
-import cloudflare from '@astrojs/cloudflare';
-
 import { execSync } from 'node:child_process';
 
 import opengraphImages from 'astro-opengraph-images';
@@ -73,7 +71,7 @@ export default defineConfig({
   },
 
   build: {
-    inlineStylesheets: 'auto',
+    inlineStylesheets: 'always',
   },
 
   vite: {
@@ -106,7 +104,7 @@ export default defineConfig({
     },
     build: {
       cssMinify: 'lightningcss',
-      minify: 'terser',
+      minify: 'esbuild',
       terserOptions: {
         compress: {
           drop_console: true,
@@ -122,5 +120,4 @@ export default defineConfig({
   },
 
   output: 'static',
-  adapter: cloudflare(),
 });
