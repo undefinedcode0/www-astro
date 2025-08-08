@@ -239,6 +239,12 @@ const date = date_unix.toLocaleDateString('en-US', {
     /* transition: opacity 0.2s ease, color 0.2s ease; */
     opacity: 0;
   }
+
+  @media (pointer: coarse), (hover: none), (max-width: 768px) {
+    #arrow-box {
+      display: none !important;
+    }
+  }
 </style>
 
 <script>

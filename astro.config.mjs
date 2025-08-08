@@ -70,37 +70,11 @@ export default defineConfig({
     ],
   },
 
-  build: {
-    inlineStylesheets: 'always',
-  },
-
   vite: {
     plugins: [tailwindcss()],
     define: {
       BUILD_COMMIT: JSON.stringify(commitHash.slice(0, 7)),
       BUILD_DATE: JSON.stringify(commitDate),
-    },
-    ssr: {
-      external: [
-        // core Node built-ins
-        'fs',
-        'fs/promises',
-        'path',
-        'url',
-        'child_process',
-        'vm',
-        'events',
-        'http',
-        'https',
-        'stream',
-        'zlib',
-        'buffer',
-        // jsdom (uses fs, path, etc.)
-        'jsdom',
-        // resvg native and JS bindings
-        '@resvg/resvg-js',
-        '@resvg/resvg-js-win32-x64-msvc',
-      ],
     },
     build: {
       cssMinify: 'lightningcss',
@@ -112,11 +86,6 @@ export default defineConfig({
         }
       }
     },
-  },
-
-  prefetch: {
-    defaultStrategy: 'hover',
-    prefetchAll: false,
   },
 
   output: 'static',
