@@ -1,4 +1,5 @@
 ---
+// unchanged imports
 import DashedLine from '@/components/common/DashedLine.astro';
 import FancyArrow from '@/components/icons/FancyArrow.astro';
 import Link from '@/components/common/Link.astro';
@@ -22,11 +23,11 @@ const date = date_unix.toLocaleDateString('en-US', {
 ---
 
 <footer class="overflow-hidden py-12 w-full max-w-screen" transition:name="footer">
-  <div id="arrow-box">
+  <div id="arrow-box" data-grid-rows={gridRows} data-grid-cols={gridCols}>
     <div class="arrow-grid">
       {
         Array.from({ length: totalArrows }).map((_, i) => (
-          <div class="arrow-wrapper text-text">
+          <div class="arrow-wrapper text-text" data-index={i}>
             <FancyArrow />
           </div>
         ))
@@ -75,10 +76,13 @@ const date = date_unix.toLocaleDateString('en-US', {
   <DashedLine width="100%" class="mt-5 mb-32" />
 </footer>
 
+<!-- quote typing script unchanged -->
 <script>
-  const init = () => {
-    const quoteElement = document.getElementById('quote');
-
+  (function () {
+    const QUOTE_ID = 'quote';
+    const BATCH_CHARS = 5; // chars per chunk fallback (tweak)
+    const IDLE_MIN_TIME = 1; // ms: leave a little headroom in requestIdleCallback
+    const IDLE_TIMEOUT = 200; // requestIdleCallback timeout fallback
     const quotes = [
       'Let your worries fade in the soft embrace of a summer breeze, and let your courage bloom.',
       'As the snow falls softly on the quiet forest, so let your heart come to rest, and your spirit stand firm.',
@@ -101,38 +105,113 @@ const date = date_unix.toLocaleDateString('en-US', {
       'Beneath the still surface of an azure sea, find the depths of your strength and the rest of your heart.',
     ];
 
-    function getRandomQuote() {
-      const randomIndex = Math.floor(Math.random() * quotes.length);
-      return quotes[randomIndex];
+    function pickRandomQuote() {
+      return quotes[Math.floor(Math.random() * quotes.length)];
     }
 
-    function typeQuote() {
-      // Reset for page transitions
-      if (!quoteElement) return;
+    // rIC wrapper with fallback to setTimeout
+    const ric = window.requestIdleCallback
+      ? (cb, opts) => window.requestIdleCallback(cb, opts)
+      : (cb, opts) => {
+          // fallback: schedule after a short timeout so we don't block paint
+          return setTimeout(
+            () => cb({ timeRemaining: () => Infinity, didTimeout: false }),
+            opts && opts.timeout ? opts.timeout : IDLE_TIMEOUT,
+          );
+        };
 
-      quoteElement.innerHTML = '';
-      const quoteText = getRandomQuote();
-      let index = 0;
-      const typingSpeed = 30;
+    const ricCancel = window.cancelIdleCallback ? (id) => window.cancelIdleCallback(id) : (id) => clearTimeout(id);
 
-      function type() {
-        if (!quoteElement) return;
+    function createTypingController(containerEl) {
+      if (!containerEl) return null;
+      containerEl.textContent = '';
+      const textNode = document.createTextNode('');
+      containerEl.appendChild(textNode);
 
-        if (index < quoteText.length) {
-          quoteElement.innerHTML += quoteText.charAt(index);
-          index++;
-          setTimeout(type, typingSpeed);
+      let idx = 0;
+      let quote = '';
+      let idleHandle = null;
+      let running = false;
+
+      function workChunk(deadline) {
+        // deadline.timeRemaining() for rIC; fallback passes Infinity
+        const timeLeft = typeof deadline.timeRemaining === 'function' ? deadline.timeRemaining() : Infinity;
+        // if we have only tiny time left, do a small batch, otherwise allow more up to BATCH_CHARS*2
+        const batchLimit = timeLeft > IDLE_MIN_TIME ? BATCH_CHARS * 2 : BATCH_CHARS;
+
+        let didWork = false;
+        let count = 0;
+        while (idx < quote.length && count < batchLimit) {
+          textNode.appendData(quote.charAt(idx));
+          idx++;
+          count++;
+          didWork = true;
+        }
+
+        if (idx < quote.length) {
+          // schedule next idle chunk; use a small timeout fallback via ric
+          idleHandle = ric(workChunk, { timeout: IDLE_TIMEOUT });
+        } else {
+          running = false;
+          idleHandle = null;
         }
       }
 
-      type();
+      function start(newQuote) {
+        if (!newQuote) return;
+        stop();
+        // reset
+        textNode.data = '';
+        idx = 0;
+        quote = newQuote;
+        running = true;
+        // schedule first chunk during idle
+        idleHandle = ric(workChunk, { timeout: IDLE_TIMEOUT });
+      }
+
+      function stop() {
+        running = false;
+        if (idleHandle != null) {
+          ricCancel(idleHandle);
+          idleHandle = null;
+        }
+      }
+
+      function isRunning() {
+        return running;
+      }
+
+      return { start, stop, isRunning };
     }
 
-    // Run on every page load/transition
-    typeQuote();
-  };
+    function initTyping() {
+      const el = document.getElementById(QUOTE_ID);
+      if (!el) return;
+      const controller = createTypingController(el);
+      if (!controller) return;
 
-  init();
+      // Pause typing when tab is hidden to avoid background work
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) controller.stop();
+        else controller.start(pickRandomQuote());
+      });
+
+      // Stop if element removed from DOM (SPA nav)
+      const observer = new MutationObserver(() => {
+        if (!document.contains(el)) controller.stop();
+      });
+      observer.observe(document, { childList: true, subtree: true });
+
+      // start
+      controller.start(pickRandomQuote());
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTyping);
+    } else {
+      initTyping();
+    }
+  })();
 </script>
 
 <style>
@@ -163,203 +242,197 @@ const date = date_unix.toLocaleDateString('en-US', {
 </style>
 
 <script>
-  let lastMouseEvent: MouseEvent | null = null;
-  let cachedFooterRect: DOMRect | null = null;
-  let cachedArrowRects: DOMRect[] = [];
+  let lastMouseEvent = null;
+  let cachedFooterRect = null;
+  let cachedArrowCenters = [];
   let rectsNeedUpdate = true;
 
-  const init = () => {
-    const arrowWrappers = document.querySelectorAll('.arrow-wrapper');
-    const footer = document.querySelector('#arrow-box');
+  // animation / timing
+  let animationRunning = false;
+  let lastMouseMoveTime = Date.now();
+  let animationFrameId = null;
 
-    if (!footer) {
+  // Spring config
+  const springStrength = 0.07;
+  const damping = 0.8;
+  const maxOffset = 40;
+  const maxVelocity = 2.0;
+
+  const footer = document.getElementById('arrow-box');
+  const arrowWrappers = Array.from(document.querySelectorAll('.arrow-wrapper'));
+  const arrowElements = arrowWrappers.map((w) => w.querySelector('svg'));
+  const gridRowsAttr = footer?.dataset?.gridRows;
+  const gridColsAttr = footer?.dataset?.gridCols;
+  const gridRows = parseInt(gridRowsAttr, 10) || 5;
+  const gridCols = parseInt(gridColsAttr, 10) || 20;
+  const totalArrows = Math.min(gridRows * gridCols, arrowWrappers.length);
+
+  const springs = Array.from({ length: totalArrows }).map(() => ({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+  }));
+
+  function updateCachedRects() {
+    if (!footer) return;
+    cachedFooterRect = footer.getBoundingClientRect();
+
+    const cellW = cachedFooterRect.width / gridCols;
+    const cellH = cachedFooterRect.height / gridRows;
+
+    cachedArrowCenters = Array.from({ length: totalArrows }).map((_, i) => {
+      const col = i % gridCols;
+      const row = Math.floor(i / gridCols);
+      return {
+        x: cachedFooterRect.left + col * cellW + cellW / 2,
+        y: cachedFooterRect.top + row * cellH + cellH / 2,
+      };
+    });
+
+    rectsNeedUpdate = false;
+  }
+
+  let resizeTimeout = null;
+  function scheduleRectsUpdate() {
+    rectsNeedUpdate = true;
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      updateCachedRects();
+    }, 32);
+  }
+  window.addEventListener('resize', scheduleRectsUpdate);
+  window.addEventListener('scroll', scheduleRectsUpdate, { passive: true });
+
+  function updateArrows(e) {
+    if (!footer) return;
+    if (rectsNeedUpdate) updateCachedRects();
+    if (!cachedFooterRect) return;
+
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    const isNearFooter =
+      mouseY > cachedFooterRect.top - 100 &&
+      mouseY < cachedFooterRect.bottom + 100 &&
+      mouseX > cachedFooterRect.left - 100 &&
+      mouseX < cachedFooterRect.right + 100;
+
+    const footerCenterX = cachedFooterRect.left + cachedFooterRect.width / 2;
+    const footerCenterY = cachedFooterRect.top + cachedFooterRect.height / 2;
+    const distanceThreshold = Math.max(cachedFooterRect.width, cachedFooterRect.height) * 0.75;
+    const distanceToCenter = Math.sqrt((mouseX - footerCenterX) ** 2 + (mouseY - footerCenterY) ** 2);
+
+    for (let index = 0; index < totalArrows; index++) {
+      const center = cachedArrowCenters[index];
+      if (!center) continue;
+
+      const arrow = arrowElements[index];
+      if (!arrow) continue;
+
+      const arrowX = center.x;
+      const arrowY = center.y;
+
+      let targetX, targetY;
+      if (distanceToCenter > distanceThreshold || !isNearFooter) {
+        targetX = footerCenterX;
+        targetY = footerCenterY;
+      } else {
+        targetX = mouseX;
+        targetY = mouseY;
+      }
+
+      const dx = targetX - arrowX;
+      const dy = targetY - arrowY;
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      const spring = springs[index];
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      let nudgeDirectionX = dx;
+      let nudgeDirectionY = dy;
+      const dirMagnitude = Math.max(0.0001, Math.sqrt(dx * dx + dy * dy));
+      nudgeDirectionX /= dirMagnitude;
+      nudgeDirectionY /= dirMagnitude;
+      const nudgeMagnitude = Math.min(distance * 0.05, maxOffset);
+      const targetOffsetX = nudgeDirectionX * nudgeMagnitude;
+      const targetOffsetY = nudgeDirectionY * nudgeMagnitude;
+      const forceX = (targetOffsetX - spring.x) * springStrength;
+      const forceY = (targetOffsetY - spring.y) * springStrength;
+
+      spring.vx = spring.vx * damping + forceX;
+      spring.vy = spring.vy * damping + forceY;
+
+      const currentVelocity = Math.sqrt(spring.vx * spring.vx + spring.vy * spring.vy);
+      if (currentVelocity > maxVelocity) {
+        const scaleFactor = maxVelocity / currentVelocity;
+        spring.vx *= scaleFactor;
+        spring.vy *= scaleFactor;
+      }
+
+      spring.x += spring.vx;
+      spring.y += spring.vy;
+
+      const positionMagnitude = Math.sqrt(spring.x * spring.x + spring.y * spring.y);
+      if (positionMagnitude > maxOffset) {
+        const posScaleFactor = maxOffset / positionMagnitude;
+        spring.x *= posScaleFactor;
+        spring.y *= posScaleFactor;
+      }
+
+      const maxDistance =
+        Math.sqrt(cachedFooterRect.width * cachedFooterRect.width + cachedFooterRect.height * cachedFooterRect.height) /
+        1.5;
+      const normalizedDistance = distance / maxDistance;
+      const opacity = isNearFooter ? Math.max(0.2, 1 - Math.abs(normalizedDistance) * 2) : 0.2;
+
+      arrow.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg)`;
+      arrow.style.color = `var(--color-link)`;
+      arrow.style.opacity = opacity.toFixed(2);
+    }
+  }
+
+  function animateArrowsLoop() {
+    const now = Date.now();
+    const timeSinceLastMove = now - lastMouseMoveTime;
+
+    if (timeSinceLastMove > 2000) {
+      animationRunning = false;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
       return;
     }
 
-    // Cache DOM elements
-    const arrowElements = Array.from(arrowWrappers);
-
-    // Function to update cached rectangles
-    function updateCachedRects() {
-      if (!footer) return;
-
-      cachedFooterRect = footer.getBoundingClientRect();
-      cachedArrowRects = arrowElements.map((wrapper) => wrapper.getBoundingClientRect());
-      rectsNeedUpdate = false;
-    }
-
-    // Update rects on resize and scroll
-    let resizeTimeout: number;
-    function handleResize() {
-      rectsNeedUpdate = true;
-      clearTimeout(resizeTimeout as number);
-      resizeTimeout = setTimeout(updateCachedRects, 100) as unknown as number;
-    }
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleResize, { passive: true });
-
-    // Initial cache
-    updateCachedRects();
-
-    // Spring physics configuration
-    const springs = Array.from(arrowWrappers).map(() => ({
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-    }));
-
-    const springStrength = 0.07;
-    const damping = 0.8;
-    const maxOffset = 40;
-
-    function updateArrows(e: MouseEvent | { clientX: number; clientY: number }) {
-      // Update cached rects if needed
-      if (rectsNeedUpdate) {
-        updateCachedRects();
-      }
-
-      if (!cachedFooterRect) return;
-
-      const footerRect = cachedFooterRect;
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-
-      const isNearFooter =
-        mouseY > footerRect.top - 100 &&
-        mouseY < footerRect.bottom + 100 &&
-        mouseX > footerRect.left - 100 &&
-        mouseX < footerRect.right + 100;
-
-      const footerCenterX = footerRect.left + footerRect.width / 2;
-      const footerCenterY = footerRect.top + footerRect.height / 2;
-      const distanceThreshold = Math.max(footerRect.width, footerRect.height) * 0.75;
-      const distanceToCenter = Math.sqrt((mouseX - footerCenterX) ** 2 + (mouseY - footerCenterY) ** 2);
-
-      // Process each arrow using cached rects
-      arrowElements.forEach((wrapper, index) => {
-        const arrowRect = cachedArrowRects[index];
-        if (!arrowRect) return;
-
-        const arrowX = arrowRect.left + arrowRect.width / 2;
-        const arrowY = arrowRect.top + arrowRect.height / 2;
-        const arrow = wrapper.querySelector('svg');
-        if (!arrow) return;
-
-        // Rest of the logic remains the same...
-        let targetX, targetY;
-        if (distanceToCenter > distanceThreshold || !isNearFooter) {
-          targetX = footerCenterX;
-          targetY = footerCenterY;
-        } else {
-          targetX = mouseX;
-          targetY = mouseY;
-        }
-
-        const dx = targetX - arrowX;
-        const dy = targetY - arrowY;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-        const spring = springs[index];
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        let nudgeDirectionX = dx;
-        let nudgeDirectionY = dy;
-        const dirMagnitude = Math.max(0.0001, Math.sqrt(dx * dx + dy * dy));
-        nudgeDirectionX /= dirMagnitude;
-        nudgeDirectionY /= dirMagnitude;
-        const nudgeMagnitude = Math.min(distance * 0.05, maxOffset);
-        const targetOffsetX = nudgeDirectionX * nudgeMagnitude;
-        const targetOffsetY = nudgeDirectionY * nudgeMagnitude;
-        const forceX = (targetOffsetX - spring.x) * springStrength;
-        const forceY = (targetOffsetY - spring.y) * springStrength;
-
-        spring.vx = spring.vx * damping + forceX;
-        spring.vy = spring.vy * damping + forceY;
-
-        const currentVelocity = Math.sqrt(spring.vx * spring.vx + spring.vy * spring.vy);
-        const maxVelocity = 2.0;
-        if (currentVelocity > maxVelocity) {
-          const scaleFactor = maxVelocity / currentVelocity;
-          spring.vx *= scaleFactor;
-          spring.vy *= scaleFactor;
-        }
-
-        spring.x += spring.vx;
-        spring.y += spring.vy;
-        const positionMagnitude = Math.sqrt(spring.x * spring.x + spring.y * spring.y);
-        if (positionMagnitude > maxOffset) {
-          const posScaleFactor = maxOffset / positionMagnitude;
-          spring.x *= posScaleFactor;
-          spring.y *= posScaleFactor;
-        }
-
-        const maxDistance =
-          Math.sqrt(footerRect.width * footerRect.width + footerRect.height * footerRect.height) / 1.5;
-        const optimalDistanceRatio = 0;
-        const normalizedDistance = distance / maxDistance;
-        const opacity = isNearFooter ? Math.max(0.2, 1 - Math.abs(normalizedDistance - optimalDistanceRatio) * 2) : 0.2;
-
-        arrow.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg)`;
-        arrow.style.color = `var(--color-link)`;
-        arrow.style.opacity = opacity.toFixed(2);
-      });
-    }
-
-    // Track mouse movement
-    document.addEventListener('mousemove', updateArrows);
-
-    // Throttle animation loop when mouse is not moving
-    let animationRunning = true;
-    let lastMouseMoveTime = Date.now();
-    
-    function animateArrows() {
-      const now = Date.now();
-      const timeSinceLastMove = now - lastMouseMoveTime;
-      
-      // Reduce animation frequency when mouse hasn't moved for a while
-      if (timeSinceLastMove > 2000) {
-        // Stop animation after 2 seconds of no mouse movement
-        animationRunning = false;
-        return;
-      }
-      
-      const lastEvent = lastMouseEvent || {
-        clientX: window.innerWidth / 2,
-        clientY: window.innerHeight * 2,
-      };
-
-      updateArrows(lastEvent);
-      
-      if (animationRunning) {
-        requestAnimationFrame(animateArrows);
-      }
-    }
-
-    // Update mouse tracking
-    function handleMouseMove(e: MouseEvent) {
-      lastMouseEvent = e;
-      lastMouseMoveTime = Date.now();
-      rectsNeedUpdate = true; // Mark rects for update on next frame
-      
-      // Restart animation if it was stopped
-      if (!animationRunning) {
-        animationRunning = true;
-        requestAnimationFrame(animateArrows);
-      }
-    }
-
-    document.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousemove', handleMouseMove);
-
-    // Start animation loop
-    requestAnimationFrame(animateArrows);
-
-    // Initialize with default position
-    updateArrows({
+    const lastEvent = lastMouseEvent || {
       clientX: window.innerWidth / 2,
       clientY: window.innerHeight * 2,
-    } as MouseEvent);
+    };
+
+    updateArrows(lastEvent);
+
+    animationFrameId = requestAnimationFrame(animateArrowsLoop);
+  }
+
+  function handleMouseMove(e) {
+    lastMouseEvent = e;
+    lastMouseMoveTime = Date.now();
+
+    if (!animationRunning) {
+      animationRunning = true;
+      animationFrameId = requestAnimationFrame(animateArrowsLoop);
+    }
+  }
+
+  document.addEventListener('mousemove', handleMouseMove);
+
+  updateCachedRects();
+
+  lastMouseEvent = {
+    clientX: window.innerWidth / 2,
+    clientY: window.innerHeight * 2,
   };
-  init();
+  lastMouseMoveTime = Date.now();
+  animationRunning = true;
+  animationFrameId = requestAnimationFrame(animateArrowsLoop);
 </script>
