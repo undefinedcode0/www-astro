@@ -74,7 +74,6 @@ export default defineConfig({
 
   build: {
     inlineStylesheets: 'auto',
-    assetsPrefix: './',
   },
 
   vite: {
