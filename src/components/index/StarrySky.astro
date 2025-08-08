@@ -239,12 +239,29 @@
   // --- Initialization and Cleanup ---
 
   // Initializes the starfield effect
+  // Cache DOM elements
+  let cachedContainer: Element | null = null;
+  let cachedStarElements: Element[] = [];
+
   function initStarfield() {
-    console.log('Starfield: Initializing (astro:page-load)'); // For debugging
-    // Regenerate star positions and apply styles
+    console.log('Starfield: Initializing (astro:page-load)');
+
+    // Cache container and elements
+    cachedContainer = document.querySelector('.starfield-container');
+    if (!cachedContainer) {
+      console.warn('Starfield container not found on this page.');
+      return;
+    }
+
+    // Cache star elements
+    cachedStarElements = [
+      cachedContainer.querySelector('.stars'),
+      cachedContainer.querySelector('.stars1'),
+      cachedContainer.querySelector('.stars2'),
+    ].filter(Boolean);
+
     generateAllStarFields();
-    // Start the animation loop *if* the container was found
-    if (document.querySelector('.starfield-container')) {
+    if (cachedContainer) {
       startAnimationLoop();
     }
   }

@@ -24,85 +24,56 @@ const { title, description, dim: isDim, class: classList } = Astro.props;
   {/* This runs before the body renders to prevent FOUC */}
   <script is:inline>
     (function () {
-      // --- Theme Handling ---
-      const themeStorageKey = 'theme';
-      const themeQuery = '(prefers-color-scheme: dark)';
-      const defaultTheme = 'system'; // Default if nothing is stored
+      const d = document.documentElement;
 
-      function getThemeSetting() {
-        return localStorage.getItem(themeStorageKey) || defaultTheme;
+      // --- Theme Handling (Optimized) ---
+      const themeKey = 'theme';
+      const defaultTheme = 'system';
+      const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function getTheme() {
+        return localStorage.getItem(themeKey) || defaultTheme;
       }
 
       function applyTheme(theme) {
-        const d = document.documentElement;
-        // Clear previous theme state classes
-        d.classList.remove('dark', 'light', 'system');
+        // Use a single class toggle instead of multiple operations
+        d.className = d.className.replace(/\b(dark|light|system)\b/g, '');
+        d.classList.add(theme);
 
-        if (theme === 'dark') {
+        if (theme === 'system') {
+          d.classList.toggle('dark', darkQuery.matches);
+        } else if (theme === 'dark') {
           d.classList.add('dark');
-        } else if (theme === 'light') {
-          d.classList.add('light'); // Add 'light' class if your CSS needs it
-        } else {
-          // 'system'
-          d.classList.add('system'); // Mark that system preference is active
-          // Apply the *actual* system theme
-          if (window.matchMedia(themeQuery).matches) {
-            d.classList.add('dark');
-          } else {
-            // Optional: d.classList.add('light');
-          }
         }
       }
 
-      const currentThemeSetting = getThemeSetting();
-      applyTheme(currentThemeSetting);
-
-      // Add listener for system theme changes *only* if the stored setting is 'system'
-      // This ensures dynamic updates if the user changes OS theme while on the site
-      if (currentThemeSetting === 'system') {
-        const mediaQuery = window.matchMedia(themeQuery);
-        const handleSystemThemeChange = (e) => {
-          // Re-check storage in case user selected light/dark explicitly in another tab
-          if (localStorage.getItem(themeStorageKey) === 'system' || !localStorage.getItem(themeStorageKey)) {
-            const d = document.documentElement;
-            if (e.matches) {
-              d.classList.add('dark');
-              d.classList.remove('light'); // Ensure consistency
-            } else {
-              d.classList.remove('dark');
-              // Optional: d.classList.add('light');
-            }
-          }
-        };
-        mediaQuery.addEventListener('change', handleSystemThemeChange);
-      }
-
-      // --- Font Handling ---
-      const fontStorageKey = 'font';
-      const validFonts = ['sans', 'serif', 'mono'];
-      const defaultFont = 'serif'; // Default if nothing is stored or invalid
-      const fontClassMap = {
-        sans: 'font-sans',
-        serif: 'font-serif',
-        mono: 'font-mono',
-      };
-
-      function getFontSetting() {
-        const storedFont = localStorage.getItem(fontStorageKey);
-        return validFonts.includes(storedFont) ? storedFont : defaultFont;
-      }
+      // --- Font Handling (Optimized) ---
+      const fontKey = 'font';
+      const fontMap = { sans: 'font-sans', serif: 'font-serif', mono: 'font-mono' };
+      const defaultFont = 'serif';
 
       function applyFont(font) {
-        const d = document.documentElement;
-        // Remove all possible font classes first
-        Object.values(fontClassMap).forEach((cls) => d.classList.remove(cls));
-        // Add the correct class
-        d.classList.add(fontClassMap[font]);
+        // Remove all font classes at once
+        Object.values(fontMap).forEach((cls) => d.classList.remove(cls));
+        d.classList.add(fontMap[font] || fontMap[defaultFont]);
       }
 
-      const currentFontSetting = getFontSetting();
-      applyFont(currentFontSetting);
-    })(); // IIFE to contain scope
+      // Apply settings
+      const theme = getTheme();
+      const font = localStorage.getItem(fontKey) || defaultFont;
+
+      applyTheme(theme);
+      applyFont(font);
+
+      // Add system theme listener only if needed
+      if (theme === 'system') {
+        darkQuery.addEventListener('change', (e) => {
+          if (getTheme() === 'system') {
+            d.classList.toggle('dark', e.matches);
+          }
+        });
+      }
+    })();
   </script>
   {/* ================================================================= */}
 

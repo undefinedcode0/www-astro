@@ -29,7 +29,12 @@ export default defineConfig({
   integrations: [
     mdx(),
     sitemap(),
-    partytown(),
+    partytown({
+      // Move scripts to web worker for better performance
+      config: {
+        forward: ["gtag", "dataLayer.push"]
+      }
+    }),
     opengraphImages({
       options: {
         fonts: [
@@ -66,6 +71,12 @@ export default defineConfig({
       ],
     ],
   },
+
+  build: {
+    inlineStylesheets: 'auto',
+    assetsPrefix: './',
+  },
+
   vite: {
     plugins: [tailwindcss()],
     define: {
@@ -94,11 +105,21 @@ export default defineConfig({
         '@resvg/resvg-js-win32-x64-msvc',
       ],
     },
+    build: {
+      cssMinify: 'lightningcss',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        }
+      }
+    },
   },
 
   prefetch: {
-    defaultStrategy: 'viewport',
-    prefetchAll: true,
+    defaultStrategy: 'hover',
+    prefetchAll: false,
   },
 
   output: 'static',

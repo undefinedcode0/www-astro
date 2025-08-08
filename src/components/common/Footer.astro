@@ -164,6 +164,9 @@ const date = date_unix.toLocaleDateString('en-US', {
 
 <script>
   let lastMouseEvent: MouseEvent | null = null;
+  let cachedFooterRect: DOMRect | null = null;
+  let cachedArrowRects: DOMRect[] = [];
+  let rectsNeedUpdate = true;
 
   const init = () => {
     const arrowWrappers = document.querySelectorAll('.arrow-wrapper');
@@ -173,6 +176,32 @@ const date = date_unix.toLocaleDateString('en-US', {
       return;
     }
 
+    // Cache DOM elements
+    const arrowElements = Array.from(arrowWrappers);
+
+    // Function to update cached rectangles
+    function updateCachedRects() {
+      if (!footer) return;
+
+      cachedFooterRect = footer.getBoundingClientRect();
+      cachedArrowRects = arrowElements.map((wrapper) => wrapper.getBoundingClientRect());
+      rectsNeedUpdate = false;
+    }
+
+    // Update rects on resize and scroll
+    let resizeTimeout: number;
+    function handleResize() {
+      rectsNeedUpdate = true;
+      clearTimeout(resizeTimeout as number);
+      resizeTimeout = setTimeout(updateCachedRects, 100) as unknown as number;
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, { passive: true });
+
+    // Initial cache
+    updateCachedRects();
+
     // Spring physics configuration
     const springs = Array.from(arrowWrappers).map(() => ({
       x: 0,
@@ -181,15 +210,19 @@ const date = date_unix.toLocaleDateString('en-US', {
       vy: 0,
     }));
 
-    const springStrength = 0.07; // How quickly arrows move toward target
-    const damping = 0.8; // Higher = less oscillation
-    const maxOffset = 40; // Maximum distance arrows can move from origin
+    const springStrength = 0.07;
+    const damping = 0.8;
+    const maxOffset = 40;
 
     function updateArrows(e: MouseEvent | { clientX: number; clientY: number }) {
-      if (!footer) {
-        return;
+      // Update cached rects if needed
+      if (rectsNeedUpdate) {
+        updateCachedRects();
       }
-      const footerRect = footer.getBoundingClientRect();
+
+      if (!cachedFooterRect) return;
+
+      const footerRect = cachedFooterRect;
       const mouseX = e.clientX;
       const mouseY = e.clientY;
 
@@ -204,17 +237,17 @@ const date = date_unix.toLocaleDateString('en-US', {
       const distanceThreshold = Math.max(footerRect.width, footerRect.height) * 0.75;
       const distanceToCenter = Math.sqrt((mouseX - footerCenterX) ** 2 + (mouseY - footerCenterY) ** 2);
 
-      // Process each arrow
-      arrowWrappers.forEach((wrapper, index) => {
-        const arrowRect = wrapper.getBoundingClientRect();
+      // Process each arrow using cached rects
+      arrowElements.forEach((wrapper, index) => {
+        const arrowRect = cachedArrowRects[index];
+        if (!arrowRect) return;
+
         const arrowX = arrowRect.left + arrowRect.width / 2;
         const arrowY = arrowRect.top + arrowRect.height / 2;
         const arrow = wrapper.querySelector('svg');
-        if (!arrow) {
-          return;
-        }
+        if (!arrow) return;
 
-        // Target calculation (mouse or center)
+        // Rest of the logic remains the same...
         let targetX, targetY;
         if (distanceToCenter > distanceThreshold || !isNearFooter) {
           targetX = footerCenterX;
@@ -224,26 +257,20 @@ const date = date_unix.toLocaleDateString('en-US', {
           targetY = mouseY;
         }
 
-        // Calculate angle for rotation
         const dx = targetX - arrowX;
         const dy = targetY - arrowY;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
         const spring = springs[index];
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         let nudgeDirectionX = dx;
         let nudgeDirectionY = dy;
-
         const dirMagnitude = Math.max(0.0001, Math.sqrt(dx * dx + dy * dy));
         nudgeDirectionX /= dirMagnitude;
         nudgeDirectionY /= dirMagnitude;
-
         const nudgeMagnitude = Math.min(distance * 0.05, maxOffset);
-
         const targetOffsetX = nudgeDirectionX * nudgeMagnitude;
         const targetOffsetY = nudgeDirectionY * nudgeMagnitude;
-
         const forceX = (targetOffsetX - spring.x) * springStrength;
         const forceY = (targetOffsetY - spring.y) * springStrength;
 
@@ -252,17 +279,14 @@ const date = date_unix.toLocaleDateString('en-US', {
 
         const currentVelocity = Math.sqrt(spring.vx * spring.vx + spring.vy * spring.vy);
         const maxVelocity = 2.0;
-
         if (currentVelocity > maxVelocity) {
           const scaleFactor = maxVelocity / currentVelocity;
           spring.vx *= scaleFactor;
           spring.vy *= scaleFactor;
         }
 
-        // Update position with velocity
         spring.x += spring.vx;
         spring.y += spring.vy;
-
         const positionMagnitude = Math.sqrt(spring.x * spring.x + spring.y * spring.y);
         if (positionMagnitude > maxOffset) {
           const posScaleFactor = maxOffset / positionMagnitude;
@@ -270,17 +294,13 @@ const date = date_unix.toLocaleDateString('en-US', {
           spring.y *= posScaleFactor;
         }
 
-        // Calculate distance for opacity
         const maxDistance =
           Math.sqrt(footerRect.width * footerRect.width + footerRect.height * footerRect.height) / 1.5;
-
-        // Opacity calculation
         const optimalDistanceRatio = 0;
         const normalizedDistance = distance / maxDistance;
         const opacity = isNearFooter ? Math.max(0.2, 1 - Math.abs(normalizedDistance - optimalDistanceRatio) * 2) : 0.2;
 
-        // Apply transformations
-        arrow.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg) `;
+        arrow.style.transform = `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg)`;
         arrow.style.color = `var(--color-link)`;
         arrow.style.opacity = opacity.toFixed(2);
       });
@@ -289,22 +309,48 @@ const date = date_unix.toLocaleDateString('en-US', {
     // Track mouse movement
     document.addEventListener('mousemove', updateArrows);
 
-    // Animation loop for continuous spring updates
+    // Throttle animation loop when mouse is not moving
+    let animationRunning = true;
+    let lastMouseMoveTime = Date.now();
+    
     function animateArrows() {
-      // Create a synthetic mouse event using the last position
+      const now = Date.now();
+      const timeSinceLastMove = now - lastMouseMoveTime;
+      
+      // Reduce animation frequency when mouse hasn't moved for a while
+      if (timeSinceLastMove > 2000) {
+        // Stop animation after 2 seconds of no mouse movement
+        animationRunning = false;
+        return;
+      }
+      
       const lastEvent = lastMouseEvent || {
         clientX: window.innerWidth / 2,
         clientY: window.innerHeight * 2,
       };
 
       updateArrows(lastEvent);
-      requestAnimationFrame(animateArrows);
+      
+      if (animationRunning) {
+        requestAnimationFrame(animateArrows);
+      }
     }
 
-    // Store last mouse position for animation loop
-    window.addEventListener('mousemove', (e) => {
+    // Update mouse tracking
+    function handleMouseMove(e: MouseEvent) {
       lastMouseEvent = e;
-    });
+      lastMouseMoveTime = Date.now();
+      rectsNeedUpdate = true; // Mark rects for update on next frame
+      
+      // Restart animation if it was stopped
+      if (!animationRunning) {
+        animationRunning = true;
+        requestAnimationFrame(animateArrows);
+      }
+    }
+
+    document.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove);
 
     // Start animation loop
     requestAnimationFrame(animateArrows);
