@@ -1,0 +1,177 @@
+---
+// src/components/Slideshow.astro
+const {
+  autoplay = false,
+  interval = 5000,
+  showArrows = true,
+  showDots = true,
+  rounded = '2xl'
+} = Astro.props;
+---
+<div
+  class={`relative w-full rounded-${rounded}`}
+  data-autoplay={autoplay}
+  data-interval={interval}
+  role="region"
+  aria-roledescription="carousel"
+>
+  <div class="overflow-hidden w-full">
+    <div class="slides flex transition-transform duration-500 ease-out will-change-transform">
+      <slot />
+    </div>
+  </div>
+
+  {showArrows &&
+    <div class="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
+      <button
+        type="button"
+        class="prev pointer-events-auto inline-flex items-center justify-center rounded-md p-2 text-sm bg-text/10 hover:bg-text/20 text-text/90 focus:outline-none focus:ring-2 focus:ring-text/20"
+        aria-label="Previous slide"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        class="next pointer-events-auto inline-flex items-center justify-center rounded-md p-2 text-sm bg-text/10 hover:bg-text/20 text-text/90 focus:outline-none focus:ring-2 focus:ring-text/20"
+        aria-label="Next slide"
+      >
+        ›
+      </button>
+    </div>
+  }
+
+  {showDots &&
+    <div class="dots absolute left-1/2 bottom-3 -translate-x-1/2 flex gap-2" aria-hidden="false" />
+  }
+</div>
+
+<script type="module">
+(() => {
+  const makeSlides = (slidesWrap) => {
+    // Snapshot children so DOM changes don't break the loop
+    const originals = Array.from(slidesWrap.children);
+    originals.forEach((orig) => {
+      // if already wrapped, skip
+      if (orig.classList && orig.classList.contains('slide')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'slide min-w-full flex items-center justify-center';
+
+      // insert wrapper before the original node, then move the original node into wrapper
+      slidesWrap.insertBefore(wrapper, orig);
+      wrapper.appendChild(orig);
+
+      // Make picture/img responsive: add Tailwind classes to picture and/or img
+      const pic = wrapper.querySelector('picture');
+      const img = wrapper.querySelector('img');
+
+      if (pic) {
+        pic.classList.add('w-full');
+        // if user used <Image ... class="..."> that's fine; we still ensure full width
+      }
+      if (img) {
+        img.classList.add('w-full', 'h-auto', 'object-contain', 'max-h-[70vh]');
+      }
+    });
+  };
+
+  const initContainer = (container) => {
+    const slidesWrap = container.querySelector('.slides');
+    if (!slidesWrap) return;
+
+    // Prepare slides
+    makeSlides(slidesWrap);
+
+    const slides = slidesWrap.querySelectorAll('.slide');
+    const total = slides.length;
+    if (!total) return;
+
+    let idx = 0;
+
+    const update = (i) => {
+      // use percentage translate so variable widths don't matter
+      slidesWrap.style.transform = `translateX(-${i * 100}%)`;
+      // update dots visuals
+      const dots = container.querySelectorAll('.dot');
+      dots.forEach((d, j) => {
+        d.classList.toggle('bg-text', j === i);
+        d.classList.toggle('bg-text/30', j !== i);
+      });
+    };
+
+    // Dots
+    const dotsContainer = container.querySelector('.dots');
+    if (dotsContainer) {
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'dot w-2 h-2 rounded-full bg-text/30 ring-0 focus:outline-none';
+        d.setAttribute('aria-label', `Go to slide ${i + 1}`);
+        d.addEventListener('click', () => { idx = i; update(idx); });
+        dotsContainer.appendChild(d);
+      }
+    }
+
+    // Arrows
+    const prevBtn = container.querySelector('.prev');
+    const nextBtn = container.querySelector('.next');
+    if (prevBtn) prevBtn.addEventListener('click', () => { idx = (idx - 1 + total) % total; update(idx); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { idx = (idx + 1) % total; update(idx); });
+
+    // Keyboard
+    container.tabIndex = 0;
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevBtn?.click();
+      if (e.key === 'ArrowRight') nextBtn?.click();
+    });
+
+    // Touch
+    let startX = null;
+    slidesWrap.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    slidesWrap.addEventListener('touchend', (e) => {
+      if (startX == null) return;
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 30) {
+        if (diff > 0) nextBtn?.click(); else prevBtn?.click();
+      }
+      startX = null;
+    });
+
+    // Autoplay (with pause on hover/focus)
+    const isAutoplay = container.dataset.autoplay === 'true';
+    let intervalId = null;
+    if (isAutoplay) {
+      const ms = parseInt(container.dataset.interval || '5000', 10);
+      intervalId = setInterval(() => { idx = (idx + 1) % total; update(idx); }, ms);
+
+      container.addEventListener('mouseenter', () => { if (intervalId) clearInterval(intervalId); });
+      container.addEventListener('mouseleave', () => { intervalId = setInterval(() => { idx = (idx + 1) % total; update(idx); }, ms); });
+      container.addEventListener('focusin', () => { if (intervalId) clearInterval(intervalId); });
+      container.addEventListener('focusout', () => { intervalId = setInterval(() => { idx = (idx + 1) % total; update(idx); }, ms); });
+    }
+
+    // Re-run layout when images load (helps when sizes are computed after load)
+    slidesWrap.querySelectorAll('img').forEach((img) => {
+      if (!img.complete) img.addEventListener('load', () => update(idx));
+    });
+
+    // Ensure initial state
+    update(idx);
+
+    // Recalc on resize (keeps visual consistent if viewport sizing rules change)
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => update(idx), 120);
+    });
+  };
+
+  const boot = () => {
+    document.querySelectorAll('div[data-autoplay], div[data-interval]').forEach(initContainer);
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
