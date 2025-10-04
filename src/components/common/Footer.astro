@@ -23,6 +23,7 @@ const date = date_unix.toLocaleDateString('en-US', {
 ---
 
 <footer class="overflow-hidden py-12 w-full max-w-screen" transition:name="footer">
+  <!--
   <div id="arrow-box" data-grid-rows={gridRows} data-grid-cols={gridCols}>
     <div class="arrow-grid">
       {
@@ -33,7 +34,7 @@ const date = date_unix.toLocaleDateString('en-US', {
         ))
       }
     </div>
-  </div>
+  </div> -->
   <DashedLine width="100%" class="my-5" />
   <div class="flex flex-col flex-wrap gap-3">
     <div style="user-select: none;" class="flex flex-wrap gap-3 items-center">
@@ -216,6 +217,7 @@ const date = date_unix.toLocaleDateString('en-US', {
   })();
 </script>
 
+<!-- remove for now (unsure)
 <style>
   .arrow-grid {
     display: grid;
@@ -250,72 +252,94 @@ const date = date_unix.toLocaleDateString('en-US', {
 </style>
 
 <script>
-  // --- init / cache DOM ---
   const footer = document.getElementById('arrow-box');
+  if (!footer) throw new Error('arrow-box not found');
+
   const arrowWrappers = Array.from(document.querySelectorAll('.arrow-wrapper'));
   const arrowElements = arrowWrappers.map((w) => w.querySelector('svg'));
 
-  // performance hints
   arrowElements.forEach((el) => {
     if (el) el.style.willChange = 'transform, opacity';
   });
 
-  // grid config
   const gridRows = parseInt(footer?.dataset?.gridRows, 10) || 5;
   const gridCols = parseInt(footer?.dataset?.gridCols, 10) || 20;
   const totalArrows = Math.min(gridRows * gridCols, arrowElements.length);
 
-  // springs
   const springs = Array.from({ length: totalArrows }).map(() => ({ x: 0, y: 0, vx: 0, vy: 0 }));
 
-  // cached geometry
   let cachedFooterRect = null;
   let cachedArrowCenters = [];
-  let rectsNeedUpdate = true;
 
-  function updateCachedRects() {
-    if (!footer) return;
-    cachedFooterRect = footer.getBoundingClientRect();
-    const cellW = cachedFooterRect.width / gridCols;
-    const cellH = cachedFooterRect.height / gridRows;
+  function computeArrowCenters(rect) {
+    const cellW = rect.width / gridCols;
+    const cellH = rect.height / gridRows;
 
-    cachedArrowCenters = Array.from({ length: totalArrows }).map((_, i) => {
+    return Array.from({ length: totalArrows }).map((_, i) => {
       const col = i % gridCols;
       const row = Math.floor(i / gridCols);
       return {
-        x: cachedFooterRect.left + col * cellW + cellW / 2,
-        y: cachedFooterRect.top + row * cellH + cellH / 2,
+        x: rect.left + col * cellW + cellW / 2,
+        y: rect.top + row * cellH + cellH / 2,
       };
     });
-
-    rectsNeedUpdate = false;
   }
 
-  // schedule updates only on resize/scroll
-  let resizeTimeout = null;
-  function scheduleRectsUpdate() {
-    rectsNeedUpdate = true;
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(updateCachedRects, 32);
+  function updateGeometry(entries) {
+    // ResizeObserver gives us the rect without forcing reflow
+    const entry = entries[0];
+    const rect = entry.target.getBoundingClientRect();
+    
+    cachedFooterRect = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      right: rect.right,
+      bottom: rect.bottom,
+    };
+    cachedArrowCenters = computeArrowCenters(cachedFooterRect);
   }
-  window.addEventListener('resize', scheduleRectsUpdate);
-  window.addEventListener('scroll', scheduleRectsUpdate, { passive: true });
 
-  // animation / timing
+  // ResizeObserver fires on element resize AND position changes
+  const resizeObserver = new ResizeObserver((entries) => {
+    updateGeometry(entries);
+  });
+  resizeObserver.observe(footer);
+
+  // Also update on scroll since position changes
+  let scrollTicking = false;
+  window.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+      if (footer) {
+        const rect = footer.getBoundingClientRect();
+        cachedFooterRect = {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+          right: rect.right,
+          bottom: rect.bottom,
+        };
+        cachedArrowCenters = computeArrowCenters(cachedFooterRect);
+      }
+      scrollTicking = false;
+    });
+  }, { passive: true });
+
   let lastMouseEvent = { clientX: window.innerWidth / 2, clientY: window.innerHeight * 2 };
   let lastMouseMoveTime = performance.now();
   let animationRunning = false;
   let animationFrameId = null;
 
-  // spring config
   const springStrength = 0.07;
   const damping = 0.8;
   const maxOffset = 40;
   const maxVelocity = 2.0;
 
-  // --- core: separated read-phase and write-phase ---
   function computeArrowStates(mouseX, mouseY) {
-    // read-only math phase: no DOM reads/writes here besides using cached arrays
     if (!cachedFooterRect) return [];
 
     const footerCenterX = cachedFooterRect.left + cachedFooterRect.width / 2;
@@ -354,7 +378,6 @@ const date = date_unix.toLocaleDateString('en-US', {
       const dy = targetY - arrowY;
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-      // spring physics (pure math, mutates springs state but no DOM ops)
       const spring = springs[i];
       const distance = Math.hypot(dx, dy) || 0.0001;
 
@@ -386,12 +409,10 @@ const date = date_unix.toLocaleDateString('en-US', {
         spring.y *= posScaleFactor;
       }
 
-      const maxDistance =
-        Math.hypot(cachedFooterRect.width, cachedFooterRect.height) / 1.5;
+      const maxDistance = Math.hypot(cachedFooterRect.width, cachedFooterRect.height) / 1.5;
       const normalizedDistance = distance / maxDistance;
       const opacity = isNearFooter ? Math.max(0.2, 1 - Math.abs(normalizedDistance) * 2) : 0.2;
 
-      // store computed values — NO DOM I/O here
       results[i] = {
         transform: `translate3d(${spring.x}px, ${spring.y}px, 0) rotate(${angle}deg)`,
         opacity: opacity.toFixed(2),
@@ -403,27 +424,20 @@ const date = date_unix.toLocaleDateString('en-US', {
   }
 
   function applyArrowStates(states) {
-    // write phase: apply computed transforms/opacities in a tight loop
     for (let i = 0; i < totalArrows; i++) {
       const arrow = arrowElements[i];
       const s = states[i];
       if (!arrow || !s) continue;
       arrow.style.transform = s.transform;
       arrow.style.opacity = s.opacity;
-      // avoid reading back layout properties here
       arrow.style.color = s.color;
     }
   }
 
   function updateArrows(e) {
-    if (!footer) return;
-    if (rectsNeedUpdate) updateCachedRects();
     if (!cachedFooterRect) return;
 
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-
-    const states = computeArrowStates(mouseX, mouseY);
+    const states = computeArrowStates(e.clientX, e.clientY);
     applyArrowStates(states);
   }
 
@@ -440,9 +454,7 @@ const date = date_unix.toLocaleDateString('en-US', {
       return;
     }
 
-    const lastEvent = lastMouseEvent || { clientX: window.innerWidth / 2, clientY: window.innerHeight * 2 };
-    updateArrows(lastEvent);
-
+    updateArrows(lastMouseEvent);
     animationFrameId = requestAnimationFrame(animateArrowsLoop);
   }
 
@@ -458,8 +470,24 @@ const date = date_unix.toLocaleDateString('en-US', {
 
   document.addEventListener('mousemove', handleMouseMove);
 
-  // initial boot
-  updateCachedRects();
+  // Initial setup - do one read on load
+  const initialRect = footer.getBoundingClientRect();
+  cachedFooterRect = {
+    left: initialRect.left,
+    top: initialRect.top,
+    width: initialRect.width,
+    height: initialRect.height,
+    right: initialRect.right,
+    bottom: initialRect.bottom,
+  };
+  cachedArrowCenters = computeArrowCenters(cachedFooterRect);
+
   animationRunning = true;
   animationFrameId = requestAnimationFrame(animateArrowsLoop);
+
+  window.addEventListener('beforeunload', () => {
+    resizeObserver.disconnect();
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  });
 </script>
+-->

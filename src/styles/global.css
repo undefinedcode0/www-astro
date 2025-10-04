@@ -157,23 +157,6 @@ html {
     scroll-padding: 2rem;
 }
 
-body,
-main,
-header,
-footer,
-section,
-article,
-div,
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    transition-duration: 300ms;
-}
-
 ::selection {
     background: --alpha(var(--color-link) / 20%);
 }
