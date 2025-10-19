@@ -152,36 +152,49 @@ const { text, class: className } = Astro.props;
 
   /* Icon wrapper — make this the positioned element and give it a stable size */
   .copy-icon {
-    position: relative;           /* <- important */
+    position: relative; /* <- important */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1em;                   /* size matches SVG roughly */
+    width: 1em; /* size matches SVG roughly */
     height: 1em;
-    margin-left: 0.75rem;         /* spacing from text */
+    margin-left: 0.75rem; /* spacing from text */
     transform-origin: center;
     color: inherit;
-    transition: transform 200ms ease, opacity 200ms ease;
-    pointer-events: none;         /* clicks go to the button, not the SVG */
+    transition:
+      transform 200ms ease,
+      opacity 200ms ease;
+    pointer-events: none; /* clicks go to the button, not the SVG */
   }
-  
+
   /* Place both SVGs absolutely centered inside the .copy-icon */
   .copy-symbol,
   .checkmark {
-    position: absolute; 
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    transition: opacity 150ms ease, transform 150ms ease;
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease;
     will-change: opacity, transform;
     display: inline-block;
   }
-  
-  /* control visibility & scale via utility classes (keeps your JS toggles working) */
-  .scale-25 { transform: translate(-50%, -50%) scale(.25); }
-  .scale-100 { transform: translate(-50%, -50%) scale(1); }
-  .opacity-0 { opacity: 0; }
-  .opacity-100 { opacity: 1; }
-  .hidden { display: none !important; }
 
+  /* control visibility & scale via utility classes (keeps your JS toggles working) */
+  .scale-25 {
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+  .scale-100 {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .opacity-0 {
+    opacity: 0;
+  }
+  .opacity-100 {
+    opacity: 1;
+  }
+  .hidden {
+    display: none !important;
+  }
 </style>

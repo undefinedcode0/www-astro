@@ -30,8 +30,8 @@ export default defineConfig({
     partytown({
       // Move scripts to web worker for better performance
       config: {
-        forward: ["gtag", "dataLayer.push"]
-      }
+        forward: ['gtag', 'dataLayer.push'],
+      },
     }),
     opengraphImages({
       options: {
@@ -83,8 +83,8 @@ export default defineConfig({
         compress: {
           drop_console: true,
           drop_debugger: true,
-        }
-      }
+        },
+      },
     },
   },
 

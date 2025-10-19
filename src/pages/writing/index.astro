@@ -10,8 +10,12 @@ const posts = (await getCollection('writing')).sort((a, b) => b.data.pubDate.val
 <Layout title="Writing" description="Writing | undefinedcode">
   <div class="flex gap-7 items-center unblur-in-no-move-opacity">
     <div transition:name="hero" transition:animate="fade">
-      <h1 class="italic font-thin font-zodiak text-text text-[clamp(26px,20vmin,90px)]" 
-      style="letter-spacing: -0.08em; user-select: none;" id="title-text">Writing</h1>
+      <h1
+        class="italic font-thin font-zodiak text-text text-[clamp(26px,20vmin,90px)]"
+        style="letter-spacing: -0.08em; user-select: none;"
+        id="title-text">
+        Writing
+      </h1>
     </div>
   </div>
   <DashedLine width="100%" />
