@@ -27,12 +27,6 @@ export default defineConfig({
   integrations: [
     mdx(),
     sitemap(),
-    partytown({
-      // Move scripts to web worker for better performance
-      config: {
-        forward: ['gtag', 'dataLayer.push'],
-      },
-    }),
     opengraphImages({
       options: {
         fonts: [
