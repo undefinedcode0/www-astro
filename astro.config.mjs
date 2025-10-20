@@ -79,10 +79,11 @@ export default defineConfig({
     build: {
       cssMinify: 'lightningcss',
       minify: 'esbuild',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
+      assetsInlineLimit: 100000,
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name][extname]',
         },
       },
     },
