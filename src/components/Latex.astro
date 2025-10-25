@@ -5,6 +5,6 @@ const { formula = '' } = Astro.props;
 const html = katex.renderToString(formula, { throwOnError: false });
 ---
 
-<div class="py-2.5 text-center animation-delay-2000">
+<div class="py-2.5 text-center">
   <span set:html={html} class="" />
 </div>

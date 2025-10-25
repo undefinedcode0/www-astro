@@ -116,35 +116,6 @@ html:not(.font-sans):not(.font-serif):not(.font-mono) {
   font-family: theme('fontFamily.serif');
 }
 
-@utility animation-delay-none {
-  animation-delay: 0s;
-}
-
-@utility animation-delay-inherit {
-  animation-delay: inherit;
-}
-
-@utility animation-delay-initial {
-  animation-delay: initial;
-}
-
-@utility animation-delay-revert {
-  animation-delay: revert;
-}
-
-@utility animation-delay-revert-layer {
-  animation-delay: revert-layer;
-}
-
-@utility animation-delay-unset {
-  animation-delay: unset;
-}
-
-@utility animation-delay-* {
-  animation-delay: --value([ *]);
-  animation-delay: calc(--value(integer) * 1ms);
-}
-
 :root {
   --transition-duration: 500ms;
 }
@@ -163,41 +134,6 @@ html {
 
 * {
   line-height: 1.681;
-}
-
-@utility unblur-in {
-  filter: blur(10px);
-  opacity: 0;
-  animation: unblur-in var(--transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@utility unblur-in-no-move-opacity {
-  filter: blur(10px);
-  animation: unblur-in-no-move-opacity var(--transition-duration) cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes unblur-in {
-  0% {
-    filter: blur(10px);
-    transform: translateY(20%);
-    opacity: 0;
-  }
-
-  100% {
-    filter: blur(0px);
-    transform: translateY(0%);
-    opacity: 1;
-  }
-}
-
-@keyframes unblur-in-no-move-opacity {
-  0% {
-    filter: blur(2px);
-  }
-
-  100% {
-    filter: blur(0px);
-  }
 }
 
 @keyframes fade-in {

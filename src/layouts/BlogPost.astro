@@ -28,7 +28,7 @@ const { title, description, pubDate, updatedDate } = Astro.props;
     </span>
   </a>
   <h1 transition:name={`post ${title}`} class="py-6 text-3xl font-light font-zodiak text-text">{title}</h1>
-  <p class="unblur-in animation-delay-50">
+  <p>
     <span class:list={[updatedDate ? 'text-text/30' : 'text-text/100']}>
       <FormattedDate date={pubDate} />
     </span>
