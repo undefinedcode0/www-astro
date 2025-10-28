@@ -22,9 +22,7 @@ const posts = (await getCollection('writing')).sort((a, b) => b.data.pubDate.val
       posts.map((post, index) => (
         <>
           <a class="block my-4" href={`/writing/${post.id}/`}>
-            <h1 class="text-3xl font-light font-zodiak text-text">
-              {post.data.title}
-            </h1>
+            <h1 class="text-3xl font-light font-zodiak text-text">{post.data.title}</h1>
             <p>
               <span class="inline-block">
                 <FormattedDate date={post.data.pubDate} />
