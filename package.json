@@ -7,7 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "fmt": "prettier . --write"
+    "fmt": "prettier . --write",
+    "aio": "npm run build && npx wrangler pages deploy ./dist --project-name=undefinedcode"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.10",
