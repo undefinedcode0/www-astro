@@ -5,7 +5,7 @@ pubDate: 'June 9, 2025'
 updatedDate: 'September 28, 2025'
 ---
 
-import { Image } from 'astro:assets';
+import ResponsiveImage from '@/components/ResponsiveImage.astro';
 import Slideshow from '@/components/Slideshow.astro';
 
 import reach from 'src/images/REACHFORTHESKIES(SECONDREV).jpg';
@@ -36,156 +36,156 @@ _Note: All of these were taken on a budget phone using an open-source camera app
 
 <Slideshow autoplay={true} interval={16000}>
 
-<Image
+<ResponsiveImage
   src={reach}
   alt="Vintage clouds graphic design, captured on September 28, 2025"
-  width={720}
-  height={1080}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 443px"
+  base={463}
+  widths={[240, 360, 463]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)60vw,463px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
-  src={img50920}
-  alt="Color version of the black-and-white, captured on September 20, 2025"
-  width={620}
-  height={320}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 664px"
-  class="w-full h-auto object-contain max-h-[70vh] rounded-md"
-  loading="eager"
-/>
-
-<Image
+<ResponsiveImage
   src={bwgrain}
   alt="Black-and-white, film-style, captured on September 20, 2025"
-  width={620}
-  height={320}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
+  src={img50920}
+  alt="Color version of the black-and-white, captured on September 20, 2025"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
+  class="w-full h-auto object-contain max-h-[70vh] rounded-md"
+  loading="eager"
+/>
+
+<ResponsiveImage
   src={filmydreamy2}
   alt="Clouds with a dreamy, film-like look, captured on September 13, 2025"
-  width={620}
-  height={320}
-  quality={85}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={pano}
   alt="Panoramic cloudscape, captured on June 28, 2025"
-  width={620}
-  height={320}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 100vw"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)90vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={starfield}
   alt="Starfield astrophotography shot, captured on June 28, 2025"
-  width={2093}
-  height={1585}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={portrait}
   alt="Portrait-oriented cloud, captured on June 20, 2025"
-  width={320}
-  height={620}
-  quality={72}
-  sizes="(max-width: 768px) 50vw, 320px"
+  base={320}
+  widths={[160, 240, 320]}
+  quality={65}
+  sizes="(max-width:640px)80vw,(max-width:1024px)40vw,320px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={may31}
   alt="Golden-hour clouds, captured on May 31, 2025"
-  width={1164}
-  height={582}
-  quality={72}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={may02}
   alt="Rainy, dreamy-day clouds, captured on May 2, 2025"
-  width={2032}
-  height={1016}
-  quality={75}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={mar22}
   alt="Swirling clouds, captured on March 22, 2025"
-  width={1170}
-  height={534}
-  quality={70}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={nightstreet}
   alt="Night street photography, captured on March 14, 2025"
-  width={1080}
-  height={540}
-  quality={70}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={feb25}
   alt="Early foggy morning, captured on February 25, 2025"
-  width={1131}
-  height={565}
-  quality={70}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={feb01}
   alt="Sunrise portrait, captured on February 1, 2025"
-  width={1148}
-  height={1516}
-  quality={72}
-  sizes="(max-width: 768px) 100vw, 320px"
+  base={320}
+  widths={[160, 240, 320]}
+  quality={65}
+  sizes="(max-width:640px)80vw,(max-width:1024px)40vw,320px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
 
-<Image
+<ResponsiveImage
   src={jan21}
   alt="Snowy morning scene, captured on January 21, 2025"
-  width={2022}
-  height={1011}
-  quality={90}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={70}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain max-h-[70vh] rounded-md"
   loading="eager"
 />
@@ -196,24 +196,24 @@ _Note: All of these were taken on a budget phone using an open-source camera app
 
 ---
 
-<Image
+<ResponsiveImage
   src={oct30_2024}
   alt="Sunset clouds, captured on October 30, 2024"
-  width={1089}
-  height={545}
-  quality={72}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={65}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain rounded-md"
   loading="lazy"
 />
 
-<Image
+<ResponsiveImage
   src={oct05_2024}
   alt="Eagle in flight, captured on October 5, 2024"
-  width={941}
-  height={914}
-  quality={72}
-  sizes="(max-width: 768px) 100vw, 664px"
+  base={664}
+  widths={[320, 480, 664]}
+  quality={60}
+  sizes="(max-width:640px)100vw,(max-width:1024px)80vw,664px"
   class="w-full h-auto object-contain rounded-md"
   loading="lazy"
 />

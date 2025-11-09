@@ -11,12 +11,23 @@ type Props = CollectionEntry<'writing'>['data'];
 const { title, description, pubDate, updatedDate } = Astro.props;
 ---
 
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link
-  rel="stylesheet"
+  rel="preload"
+  as="style"
   href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
   integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP"
   crossorigin="anonymous"
+  onload="this.rel='stylesheet'"
 />
+<noscript>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
+    integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP"
+    crossorigin="anonymous"
+  />
+</noscript>
 
 <Layout title={title} description={description} dim>
   <a
@@ -29,13 +40,13 @@ const { title, description, pubDate, updatedDate } = Astro.props;
   </a>
   <h1 transition:name={`post ${title}`} class="py-6 text-3xl font-light font-zodiak text-text">{title}</h1>
   <p>
-    <span class:list={[updatedDate ? 'text-text/30' : 'text-text/100']}>
+    <span class:list={[updatedDate ? 'text-text/100' : 'text-text/100']}>
       <FormattedDate date={pubDate} />
     </span>
     {
       updatedDate && (
         <>
-          <span class="text-text/30">&bull; updated</span>
+          <span class="text-text/100">&bull; updated</span>
           <span class="text-text">
             <FormattedDate date={updatedDate} />
           </span>

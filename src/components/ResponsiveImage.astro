@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+
+const {
+  src,
+  alt = '',
+  base = 400,
+  scales = [1, 2, 3],
+  // allow user to pass `format` as string or array (or omit it)
+  format = undefined,
+  quality = 80,
+  layout = 'constrained',
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  class: className = '',
+  loading = 'lazy',
+} = Astro.props;
+
+// normalize format: if array, take first; if comma-separated string, take first token
+let formatProp;
+if (Array.isArray(format) && format.length > 0) {
+  formatProp = String(format[0]);
+} else if (typeof format === 'string' && format.includes(',')) {
+  formatProp = format.split(',')[0].trim();
+} else if (typeof format === 'string' && format.length > 0) {
+  formatProp = format;
+} else {
+  formatProp = undefined;
+}
+
+// compute widths
+const widths = scales.map((s) => Math.round(base * s));
+---
+
+{/** Conditionally pass `format` only when it's defined to avoid sending `format=undefined` */}
+{
+  formatProp ? (
+    <Image
+      src={src}
+      alt={alt}
+      widths={widths}
+      sizes={sizes}
+      quality={quality}
+      layout={layout}
+      format={formatProp}
+      class={className}
+      loading={loading}
+    />
+  ) : (
+    <Image
+      src={src}
+      alt={alt}
+      widths={widths}
+      sizes={sizes}
+      quality={quality}
+      layout={layout}
+      class={className}
+      loading={loading}
+    />
+  )
+}
