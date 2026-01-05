@@ -2,17 +2,11 @@
 // No server-side javascript needed for this component based on the original svelte code.
 // All logic is client-side.
 ---
-
 <div class="starfield-container" transition:persist="starfield">
-  <div class="stars"></div>
-  <div class="stars1"></div>
-  <div class="stars2"></div>
+  <canvas class="stars-canvas" aria-hidden="true"></canvas>
 </div>
 
 <style>
-  /* critique: using 'container' as a class name is kinda generic, maybe rename? */
-  /* also, maybe scope these styles more tightly if this lives with other components. */
-  /* astro scopes by default, but global styles or conflicts could still happen. */
   .starfield-container {
     width: 100%;
     height: 100%;
@@ -20,269 +14,213 @@
     overflow: hidden;
   }
 
-  /* Stars */
-  /* critique: the rotate: 45deg is kinda sus for a starfield? it rotates the *entire* layer. */
-  /* maybe intentional for effect, maybe vestigial? idk. */
-  /* also border-radius: 0 on a 1px square is redundant. */
-  .stars {
-    z-index: 10;
-    width: 1px;
-    height: 1px;
-    /* border-radius: 0; */
-    background: transparent;
-    rotate: 45deg;
+  .stars-canvas {
     position: absolute;
-    top: 0;
-    left: 0;
-    /* box-shadow is set by JS */
-  }
-  /* critique: the :after pseudo-element setup seems weird for seamless tiling. */
-  /* it's just positioned -600px above and doesn't seem accounted for in the animation logic */
-  /* which only translates the parent. likely doesn't create a proper seamless loop. */
-  /* maybe the original effect didn't actually need seamless tiling? */
-  .stars:after {
-    content: ' ';
-    /* top: -600px; */ /* this doesn't align with STAR_FIELD_HEIGHT, seems arbitrary? */
-    top: calc(-1 * var(--star-field-height, 2560px)); /* Using variable for consistency */
-    width: 1px;
-    height: 1px;
-    /* border-radius: 0; */
-    position: absolute;
-    background: transparent;
-    /* box-shadow is set by JS */
-    left: 0; /* Ensure it aligns horizontally */
-  }
-
-  .stars1 {
-    z-index: 10;
-    width: 2px;
-    height: 2px;
-    /* border-radius: 0; */
-    background: transparent;
-    position: absolute;
-    top: 0;
-    left: 0;
-    rotate: 45deg;
-  }
-  .stars1:after {
-    content: ' ';
-    /* top: -600px; */
-    top: calc(-1 * var(--star-field-height, 2560px));
-    width: 2px;
-    height: 2px;
-    /* border-radius: 0; */
-    position: absolute;
-    background: transparent;
-    left: 0;
-  }
-
-  .stars2 {
-    z-index: 10;
-    rotate: 45deg;
-    width: 3px;
-    height: 3px;
-    /* border-radius: 0; */
-    background: transparent;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  .stars2:after {
-    content: ' ';
-    /* top: -600px; */
-    top: calc(-1 * var(--star-field-height, 2560px));
-    width: 3px;
-    height: 3px;
-    /* border-radius: 0; */
-    position: absolute;
-    background: transparent;
-    left: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 </style>
 
 <script>
-  // Store animation start time and frame ID - needs to be accessible by multiple functions
-  let animationStartTime = null;
-  let animationFrameId = null;
-  let styleSheetElement = null; // Keep track of the dynamically added stylesheet
+  const STAR_COUNTS = { small: 50, medium: 100, large: 30 };
+  const SPEEDS = { small: 0.3, medium: 0.2, large: 0.1 };
 
-  // Constants for star field
-  const STAR_FIELD_WIDTH = 2560;
-  const STAR_FIELD_HEIGHT = 2560;
-  const STAR_COUNTS = {
-    small: 1700,
-    medium: 700,
-    large: 200,
-  };
-  const DURATIONS = {
-    small: 100,
-    medium: 125,
-    large: 175,
-  };
-
-  // --- Helper Functions (unchanged) ---
-  function generateStarField(numStars) {
-    const stars = [];
-    for (let i = 0; i < numStars; i++) {
-      const x = Math.floor(Math.random() * STAR_FIELD_WIDTH);
-      const y = Math.floor(Math.random() * STAR_FIELD_HEIGHT);
-      stars.push(`${x}px ${y}px #FFF`);
-    }
-    return stars.join(', ');
+  interface Star {
+    x: number;
+    y: number;
+    size: number;
+    speed: number;
+    opacity: number;
   }
 
-  // --- Core Logic ---
+  interface StarfieldState {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    stars: Star[];
+    animationId: number | null;
+    isVisible: boolean;
+    width: number;
+    height: number;
+    resizeObserver: ResizeObserver | null;
+    abortController: AbortController;
+  }
 
-  // Generates stars and applies styles (now manages its stylesheet)
-  function generateAllStarFields() {
-    // Ensure container exists before proceeding
-    // critique: maybe pass the container element ref down instead of querying globally? idk. depends on reuse.
-    const container = document.querySelector('.starfield-container');
-    if (!container) {
-      console.warn('Starfield container not found on this page.');
-      return; // Don't try to init if the container isn't here
-    }
+  let state: StarfieldState | null = null;
 
-    // Set CSS variable for height
-    document.documentElement.style.setProperty('--star-field-height', `${STAR_FIELD_HEIGHT}px`);
+  function createStars(width: number, height: number): Star[] {
+    const result: Star[] = [];
 
-    const starsElements = [
-      { selector: '.stars', pseudoSelector: '.stars::after', count: STAR_COUNTS.small },
-      { selector: '.stars1', pseudoSelector: '.stars1::after', count: STAR_COUNTS.medium },
-      { selector: '.stars2', pseudoSelector: '.stars2::after', count: STAR_COUNTS.large },
-    ];
-
-    // Remove old stylesheet if it exists from a previous init
-    if (styleSheetElement) {
-      styleSheetElement.remove();
-      styleSheetElement = null;
-    }
-    // Create and add the new stylesheet
-    styleSheetElement = document.createElement('style');
-    // Add an attribute to easily find it later for cleanup
-    styleSheetElement.setAttribute('data-starfield-styles', 'true');
-    document.head.appendChild(styleSheetElement);
-    let cssRules = '';
-
-    starsElements.forEach(({ selector, pseudoSelector, count }) => {
-      // Query relative to the container for better scoping, assuming stars are inside
-      const element = container.querySelector(selector);
-      const starShadow = generateStarField(count);
-
-      if (element) {
-        element.style.boxShadow = starShadow;
-        // Add rule for the pseudo-element to the stylesheet string
-        cssRules += `${pseudoSelector} { box-shadow: ${starShadow}; } \n`;
-      } else {
-        // It's possible the element might not be rendered if props change etc.
-        console.warn(`Starfield layer element not found: ${selector}`);
+    const addStars = (count: number, size: number, speed: number) => {
+      for (let i = 0; i < count; i++) {
+        result.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size,
+          speed,
+          opacity: 0.3 + Math.random() * 0.7,
+        });
       }
-    });
+    };
 
-    styleSheetElement.textContent = cssRules;
+    addStars(STAR_COUNTS.small, 1, SPEEDS.small);
+    addStars(STAR_COUNTS.medium, 1.5, SPEEDS.medium);
+    addStars(STAR_COUNTS.large, 2, SPEEDS.large);
+
+    return result;
   }
 
-  // Applies animation progress
-  function applyAnimationProgress() {
-    // Check if animation was cancelled (e.g., during cleanup)
-    if (!animationFrameId) return;
+  function draw() {
+    if (!state || !state.isVisible) return;
 
-    const elapsedSeconds = (Date.now() - animationStartTime) / 1000;
-    const starLayers = [
-      { element: '.stars', duration: DURATIONS.small },
-      { element: '.stars1', duration: DURATIONS.medium },
-      { element: '.stars2', duration: DURATIONS.large },
-    ];
+    const { ctx, stars, width, height } = state;
 
-    // critique: querying these elements every frame isn't ideal for perf.
-    // could cache them in initStarfield, but need to make sure they exist after swap.
-    // for now, keep querying for simplicity in handling astro swaps.
-    const container = document.querySelector('.starfield-container');
-    if (!container) return; // Stop if container disappears mid-animation (unlikely but safe)
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#FFF';
 
-    starLayers.forEach(({ element, duration }) => {
-      const el = container.querySelector(element); // Query within container
-      if (el) {
-        const progress = (elapsedSeconds % duration) / duration;
-        const maxY = -1 * STAR_FIELD_HEIGHT;
-        const maxX = -1 * STAR_FIELD_WIDTH;
-        const translateY = progress * maxY;
-        const translateX = progress * maxX;
-        el.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
-      }
-    });
+    for (const star of stars) {
+      star.y = (star.y + star.speed) % height;
+      star.x = (star.x + star.speed * 0.5) % width;
+
+      ctx.globalAlpha = star.opacity;
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    state.animationId = requestAnimationFrame(draw);
   }
 
-  // Starts the animation loop
-  function startAnimationLoop() {
-    // Ensure we don't start multiple loops
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-    }
-
-    function animate() {
-      applyAnimationProgress();
-      // Schedule next frame *conditionally*
-      if (animationFrameId !== null) {
-        // Check if cleanup has been called
-        animationFrameId = requestAnimationFrame(animate);
-      }
-    }
-    // Reset start time ONLY when starting a new loop
-    animationStartTime = Date.now();
-    // Set the ID immediately before the first call to requestAnimationFrame
-    // Set to a placeholder non-null value initially to enter the loop check
-    animationFrameId = 0;
-    animate(); // Start the loop
+  function startAnimation() {
+    if (!state || state.animationId !== null) return;
+    state.animationId = requestAnimationFrame(draw);
   }
 
-  // --- Initialization and Cleanup ---
-
-  // Initializes the starfield effect
-  // Cache DOM elements
-  let cachedContainer: Element | null = null;
-  let cachedStarElements: Element[] = [];
-
-  function initStarfield() {
-    console.log('Starfield: Initializing (astro:page-load)');
-
-    // Cache container and elements
-    cachedContainer = document.querySelector('.starfield-container');
-    if (!cachedContainer) {
-      console.warn('Starfield container not found on this page.');
-      return;
-    }
-
-    // Cache star elements
-    cachedStarElements = [
-      cachedContainer.querySelector('.stars'),
-      cachedContainer.querySelector('.stars1'),
-      cachedContainer.querySelector('.stars2'),
-    ].filter(Boolean);
-
-    generateAllStarFields();
-    if (cachedContainer) {
-      startAnimationLoop();
-    }
+  function stopAnimation() {
+    if (!state || state.animationId === null) return;
+    cancelAnimationFrame(state.animationId);
+    state.animationId = null;
   }
 
-  // Cleans up animation frame and potentially styles
+  // Handle resize using ResizeObserver (no forced reflows)
+  function handleResize(entries: ResizeObserverEntry[]) {
+    if (!state) return;
+
+    const entry = entries[0];
+    if (!entry) return;
+
+    // Use contentBoxSize to avoid getBoundingClientRect
+    const boxSize = entry.contentBoxSize[0];
+    const width = boxSize?.inlineSize ?? entry.contentRect.width;
+    const height = boxSize?.blockSize ?? entry.contentRect.height;
+
+    if (width === 0 || height === 0) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Batch all writes together
+    state.width = width;
+    state.height = height;
+    state.canvas.width = width * dpr;
+    state.canvas.height = height * dpr;
+
+    // Reset and scale context
+    state.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Recreate stars for new dimensions
+    state.stars = createStars(width, height);
+  }
+
   function cleanup() {
-    console.log('Starfield: Cleaning up (astro:before-swap)'); // For debugging
-    if (animationFrameId !== null) {
-      // Check if it's currently running
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null; // Set to null to signal cancellation
-    }
-    // Remove the dynamic stylesheet to prevent style conflicts/buildup
-    // critique: removing styles during swap might cause a flicker if the component *persists*.
-    // if persistence is used (`transition:persist`), this cleanup needs refinement.
-    // for standard swaps, removing it is generally cleaner.
-    if (styleSheetElement) {
-      styleSheetElement.remove();
-      styleSheetElement = null;
-    }
+    if (!state) return;
+
+    stopAnimation();
+    state.resizeObserver?.disconnect();
+    state.abortController.abort();
+    state = null;
   }
 
-  initStarfield();
+  function init() {
+    // Clean up any existing instance
+    cleanup();
+
+    const canvas = document.querySelector<HTMLCanvasElement>('.starfield-container .stars-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    state = {
+      canvas,
+      ctx,
+      stars: [],
+      animationId: null,
+      isVisible: true,
+      width: 0,
+      height: 0,
+      resizeObserver: null,
+      abortController,
+    };
+
+    // Use ResizeObserver - no forced reflows!
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+    state.resizeObserver = resizeObserver;
+
+    // Visibility handling
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (!state) return;
+        state.isVisible = !document.hidden;
+        if (state.isVisible) {
+          startAnimation();
+        } else {
+          stopAnimation();
+        }
+      },
+      { signal }
+    );
+
+    // Intersection Observer for efficiency
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        if (!state) return;
+        state.isVisible = entries[0]?.isIntersecting ?? false;
+        if (state.isVisible) {
+          startAnimation();
+        } else {
+          stopAnimation();
+        }
+      },
+      { threshold: 0 }
+    );
+    intersectionObserver.observe(canvas);
+
+    // Cleanup intersection observer via abort signal
+    signal.addEventListener('abort', () => {
+      intersectionObserver.disconnect();
+    });
+
+    // Start animation after first resize
+    // ResizeObserver fires immediately, so animation starts from handleResize indirectly
+    startAnimation();
+  }
+
+  // Handle Astro navigation
+  document.addEventListener('astro:before-swap', cleanup);
+  document.addEventListener('astro:page-load', init);
+
+  // Initial load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 </script>

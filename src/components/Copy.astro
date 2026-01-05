@@ -14,187 +14,100 @@ const { text, class: className } = Astro.props;
   class:list={['copy-wrapper inline-flex items-center cursor-pointer group relative text-link', className]}
   data-copy-text={text}>
   <slot />
-  <span class="inline-flex items-center ml-1 transition-all duration-200 copy-icon scale-25 opacity-0">
+  <span class="copy-icon inline-flex items-center ml-1 opacity-0 scale-75 transition-all duration-200">
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="hidden checkmark"
-      aria-hidden="true">
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
       class="copy-symbol"
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
       aria-hidden="true">
       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
+    <svg
+      class="checkmark hidden"
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
   </span>
 </span>
 
-<script>
-  // Run on DOMContentLoaded to ensure elements exist
-  document.addEventListener('DOMContentLoaded', () => {
-    const copyElements = document.querySelectorAll('.copy-wrapper');
-
-    // Helper: robust clipboard copy with fallback
-    async function copyToClipboard(text) {
-      if (!text) return Promise.reject(new Error('No text to copy'));
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(text);
-      }
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      // avoid flash / scrolling
-      textarea.style.position = 'fixed';
-      textarea.style.left = '-9999px';
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        return Promise.resolve();
-      } catch (err) {
-        document.body.removeChild(textarea);
-        return Promise.reject(err);
-      }
-    }
-
-    copyElements.forEach((element) => {
-      const iconWrapper = element.querySelector('.copy-icon');
-      const copySymbol = element.querySelector('.copy-symbol');
-      const checkmark = element.querySelector('.checkmark');
-
-      element.addEventListener('click', async () => {
-        const textToCopy = element.getAttribute('data-copy-text');
-        if (!textToCopy) return;
-
-        try {
-          await copyToClipboard(textToCopy);
-
-          if (iconWrapper && copySymbol && checkmark) {
-            iconWrapper.classList.add('opacity-100', 'scale-100', 'copied');
-            copySymbol.classList.add('hidden');
-            checkmark.classList.remove('hidden');
-
-            // hide the hover animation but keep check for a while
-            setTimeout(() => {
-              iconWrapper.classList.remove('opacity-100', 'scale-100');
-            }, 2000);
-            // revert to original state
-            setTimeout(() => {
-              iconWrapper.classList.remove('copied');
-              copySymbol.classList.remove('hidden');
-              checkmark.classList.add('hidden');
-            }, 3000);
-          }
-
-          // optional: update accessible label briefly
-          const prevLabel = element.getAttribute('aria-label');
-          element.setAttribute('aria-label', 'Copied');
-          setTimeout(() => element.setAttribute('aria-label', prevLabel), 1500);
-        } catch (err) {
-          // keep it quiet; log for debugging
-          console.error('Failed to copy text:', err);
-        }
-      });
-
-      // keyboard: Enter or Space should activate
-      element.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-          ev.preventDefault();
-          element.click();
-        }
-      });
-
-      // hover handlers
-      element.addEventListener('mouseenter', () => {
-        if (iconWrapper && !iconWrapper.classList.contains('copied')) {
-          iconWrapper.classList.add('opacity-100', 'scale-100');
-        }
-      });
-
-      element.addEventListener('mouseleave', () => {
-        if (iconWrapper && !iconWrapper.classList.contains('copied')) {
-          iconWrapper.classList.remove('opacity-100', 'scale-100');
-        }
-      });
-    });
-  });
-</script>
-
 <style>
-  /* remove non-standard CSS like --alpha(...) — browsers ignore it and it breaks intent */
   .copy-icon {
     transform-origin: center;
-    color: inherit; /* icon inherits current color */
-    transition: all 200ms ease-in-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    pointer-events: none;
   }
-
-  /* Icon wrapper — make this the positioned element and give it a stable size */
-  .copy-icon {
-    position: relative; /* <- important */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1em; /* size matches SVG roughly */
-    height: 1em;
-    margin-left: 0.75rem; /* spacing from text */
-    transform-origin: center;
-    color: inherit;
-    transition:
-      transform 200ms ease,
-      opacity 200ms ease;
-    pointer-events: none; /* clicks go to the button, not the SVG */
-  }
-
-  /* Place both SVGs absolutely centered inside the .copy-icon */
-  .copy-symbol,
-  .checkmark {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition:
-      opacity 150ms ease,
-      transform 150ms ease;
-    will-change: opacity, transform;
-    display: inline-block;
-  }
-
-  /* control visibility & scale via utility classes (keeps your JS toggles working) */
-  .scale-25 {
-    transform: translate(-50%, -50%) scale(0.25);
-  }
-  .scale-100 {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  .opacity-0 {
-    opacity: 0;
-  }
-  .opacity-100 {
+  .copy-wrapper:hover .copy-icon:not(.copied),
+  .copy-wrapper:focus .copy-icon:not(.copied) {
     opacity: 1;
+    transform: scale(1);
   }
-  .hidden {
-    display: none !important;
+  .copy-icon.copied {
+    opacity: 1;
+    transform: scale(1);
   }
 </style>
+
+<script>
+  // Use event delegation - single listener for all copy buttons
+  function initCopyHandlers() {
+    const handler = async (e: Event) => {
+      const target = (e.target as Element).closest('.copy-wrapper');
+      if (!target) return;
+
+      const text = target.getAttribute('data-copy-text');
+      if (!text) return;
+
+      const icon = target.querySelector('.copy-icon');
+      const copySymbol = target.querySelector('.copy-symbol');
+      const checkmark = target.querySelector('.checkmark');
+
+      try {
+        await navigator.clipboard.writeText(text);
+
+        if (icon && copySymbol && checkmark) {
+          icon.classList.add('copied');
+          copySymbol.classList.add('hidden');
+          checkmark.classList.remove('hidden');
+
+          setTimeout(() => {
+            icon.classList.remove('copied');
+            copySymbol.classList.remove('hidden');
+            checkmark.classList.add('hidden');
+          }, 2000);
+        }
+      } catch (err) {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.cssText = 'position:fixed;left:-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    };
+
+    // Remove existing listener before adding new one
+    document.removeEventListener('click', handler);
+    document.addEventListener('click', handler);
+  }
+
+  initCopyHandlers();
+  document.addEventListener('astro:page-load', initCopyHandlers);
+</script>

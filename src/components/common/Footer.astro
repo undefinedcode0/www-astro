@@ -65,7 +65,7 @@ const date = date_unix.toLocaleDateString('en-US', {
       <Link href="https://github.com/undefinedcode0/www-astro" external class="-translate-y-px">Source</Link>
       <!-- remove for now
       <span class="text-text/20">&bull;</span>
-      
+
       <Link
         href="https://cloud.umami.is/share/EHDxW1dO8DPxLZwL/undefinedcode.pages.dev"
         external
@@ -81,11 +81,7 @@ const date = date_unix.toLocaleDateString('en-US', {
 
 <!-- quote typing script unchanged -->
 <script>
-  (function () {
-    const QUOTE_ID = 'quote';
-    const BATCH_CHARS = 5; // chars per chunk fallback (tweak)
-    const IDLE_MIN_TIME = 1; // ms: leave a little headroom in requestIdleCallback
-    const IDLE_TIMEOUT = 200; // requestIdleCallback timeout fallback
+  (() => {
     const quotes = [
       'Let your worries fade in the soft embrace of a summer breeze, and let your courage bloom.',
       'As the snow falls softly on the quiet forest, so let your heart come to rest, and your spirit stand firm.',
@@ -108,112 +104,66 @@ const date = date_unix.toLocaleDateString('en-US', {
       'Beneath the still surface of an azure sea, find the depths of your strength and the rest of your heart.',
     ];
 
-    function pickRandomQuote() {
-      return quotes[Math.floor(Math.random() * quotes.length)];
-    }
-
-    // rIC wrapper with fallback to setTimeout
-    const ric = window.requestIdleCallback
-      ? (cb, opts) => window.requestIdleCallback(cb, opts)
-      : (cb, opts) => {
-          // fallback: schedule after a short timeout so we don't block paint
-          return setTimeout(
-            () => cb({ timeRemaining: () => Infinity, didTimeout: false }),
-            opts && opts.timeout ? opts.timeout : IDLE_TIMEOUT,
-          );
-        };
-
-    const ricCancel = window.cancelIdleCallback ? (id) => window.cancelIdleCallback(id) : (id) => clearTimeout(id);
-
-    function createTypingController(containerEl) {
-      if (!containerEl) return null;
-      containerEl.textContent = '';
-      const textNode = document.createTextNode('');
-      containerEl.appendChild(textNode);
-
-      let idx = 0;
-      let quote = '';
-      let idleHandle = null;
-      let running = false;
-
-      function workChunk(deadline) {
-        // deadline.timeRemaining() for rIC; fallback passes Infinity
-        const timeLeft = typeof deadline.timeRemaining === 'function' ? deadline.timeRemaining() : Infinity;
-        // if we have only tiny time left, do a small batch, otherwise allow more up to BATCH_CHARS*2
-        const batchLimit = timeLeft > IDLE_MIN_TIME ? BATCH_CHARS * 2 : BATCH_CHARS;
-
-        let didWork = false;
-        let count = 0;
-        while (idx < quote.length && count < batchLimit) {
-          textNode.appendData(quote.charAt(idx));
-          idx++;
-          count++;
-          didWork = true;
-        }
-
-        if (idx < quote.length) {
-          // schedule next idle chunk; use a small timeout fallback via ric
-          idleHandle = ric(workChunk, { timeout: IDLE_TIMEOUT });
-        } else {
-          running = false;
-          idleHandle = null;
-        }
-      }
-
-      function start(newQuote) {
-        if (!newQuote) return;
-        stop();
-        // reset
-        textNode.data = '';
-        idx = 0;
-        quote = newQuote;
-        running = true;
-        // schedule first chunk during idle
-        idleHandle = ric(workChunk, { timeout: IDLE_TIMEOUT });
-      }
-
-      function stop() {
-        running = false;
-        if (idleHandle != null) {
-          ricCancel(idleHandle);
-          idleHandle = null;
-        }
-      }
-
-      function isRunning() {
-        return running;
-      }
-
-      return { start, stop, isRunning };
-    }
-
     function initTyping() {
-      const el = document.getElementById(QUOTE_ID);
+      const el = document.getElementById('quote');
       if (!el) return;
-      const controller = createTypingController(el);
-      if (!controller) return;
 
-      // Pause typing when tab is hidden to avoid background work
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) controller.stop();
-        else controller.start(pickRandomQuote());
-      });
+      const quote = quotes[Math.floor(Math.random() * quotes.length)];
+      let idx = 0;
+      let frameId: number | null = null;
 
-      // Stop if element removed from DOM (SPA nav)
-      const observer = new MutationObserver(() => {
-        if (!document.contains(el)) controller.stop();
-      });
-      observer.observe(document, { childList: true, subtree: true });
+      // Batch updates - type multiple chars per frame
+      const CHARS_PER_FRAME = 2;
+      const FRAME_DELAY = 50; // ms between batches
+      let lastTime = 0;
 
-      // start
-      controller.start(pickRandomQuote());
+      function type(timestamp: number) {
+        if (document.hidden || idx >= quote.length) {
+          frameId = null;
+          return;
+        }
+
+        if (timestamp - lastTime >= FRAME_DELAY) {
+          const end = Math.min(idx + CHARS_PER_FRAME, quote.length);
+          el.textContent += quote.slice(idx, end);
+          idx = end;
+          lastTime = timestamp;
+        }
+
+        frameId = requestAnimationFrame(type);
+      }
+
+      // Start typing
+      frameId = requestAnimationFrame(type);
+
+      // Pause when hidden
+      const handleVisibility = () => {
+        if (document.hidden && frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = null;
+        } else if (!document.hidden && idx < quote.length) {
+          frameId = requestAnimationFrame(type);
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibility);
+
+      // Cleanup
+      return () => {
+        if (frameId) cancelAnimationFrame(frameId);
+        document.removeEventListener('visibilitychange', handleVisibility);
+      };
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initTyping);
-    } else {
-      initTyping();
+    let cleanup: (() => void) | undefined;
+
+    function init() {
+      cleanup?.();
+      cleanup = initTyping();
     }
+
+    init();
+    document.addEventListener('astro:page-load', init);
+    document.addEventListener('astro:before-swap', () => cleanup?.());
   })();
 </script>
 
@@ -289,7 +239,7 @@ const date = date_unix.toLocaleDateString('en-US', {
     // ResizeObserver gives us the rect without forcing reflow
     const entry = entries[0];
     const rect = entry.target.getBoundingClientRect();
-    
+
     cachedFooterRect = {
       left: rect.left,
       top: rect.top,
