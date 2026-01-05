@@ -121,9 +121,6 @@ html:not(.font-sans):not(.font-serif):not(.font-mono) {
 }
 
 html {
-  transition:
-    background-color,
-    color;
   scroll-behavior: smooth;
   scroll-padding: 2rem;
 }
