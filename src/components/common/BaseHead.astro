@@ -1,81 +1,63 @@
 ---
-import Aside from '@/components/common/Aside.astro';
-import BaseHead from '@/components/common/BaseHead.astro';
-import Footer from '@/components/common/Footer.astro';
-import Header from '@/components/common/Header.astro';
+import { SITE_TITLE } from '@/consts';
+// Import the global.css file here so that it is included on
+// all pages through the use of the <BaseHead /> component.
+import { getImagePath } from 'astro-opengraph-images';
+
+import '@/styles/global.css';
 
 interface Props {
   title: string;
   description: string;
-  dim?: boolean;
-  class?: string;
+  image?: string;
 }
-const { title, description, dim: isDim, class: classList } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+const { title, description } = Astro.props;
+const { url, site } = Astro;
+const ogImageUrl = getImagePath({ url, site });
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead {title} {description} />
-    
-    <!-- Blocking Theme & Font Initialization (prevents FOUC) -->
-    <script is:inline>
-      (function () {
-        const d = document.documentElement;
+<!-- Global Metadata -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={new URL('rss.xml', Astro.site)} />
+<meta name="generator" content={Astro.generator} />
 
-        // Theme
-        const themeKey = 'theme';
-        const defaultTheme = 'system';
-        const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+<!-- Font preloads -->
+<link rel="preload" href="/fonts/source-serif-4.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Zodiak-Variable.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Zodiak-VariableItalic.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/iA-Writer-Mono-Regular.woff2" as="font" type="font/woff2" crossorigin />
 
-        function applyTheme(theme) {
-          d.classList.remove('dark', 'light', 'system');
-          d.classList.add(theme);
-          if (theme === 'system') {
-            d.classList.toggle('dark', darkQuery.matches);
-          } else if (theme === 'dark') {
-            d.classList.add('dark');
-          }
-        }
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
 
-        // Font
-        const fontKey = 'font';
-        const fontMap = { sans: 'font-sans', serif: 'font-serif', mono: 'font-mono' };
-        const defaultFont = 'serif';
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+<meta name="keywords" content="undefinedcode, undefinedcode0" />
 
-        function applyFont(font) {
-          Object.values(fontMap).forEach((cls) => d.classList.remove(cls));
-          d.classList.add(fontMap[font] || fontMap[defaultFont]);
-        }
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={Astro.url} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
 
-        // Apply
-        const theme = localStorage.getItem(themeKey) || defaultTheme;
-        const font = localStorage.getItem(fontKey) || defaultFont;
-        applyTheme(theme);
-        applyFont(font);
+<meta property="og:image" content={ogImageUrl} />
 
-        // System theme listener
-        if (theme === 'system') {
-          darkQuery.addEventListener('change', (e) => {
-            if ((localStorage.getItem(themeKey) || defaultTheme) === 'system') {
-              d.classList.toggle('dark', e.matches);
-            }
-          });
-        }
-      })();
-    </script>
-  </head>
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
 
-  <body class="flex flex-col items-center p-5 sm:p-12 lg:p-20 text-text/70 bg-bg">
-    <Header />
-    <div class="flex flex-wrap gap-20 w-full bg-bg">
-      <Aside class="top-20 2xl:sticky" dim={isDim} transition:persist="aside" />
-      <div class="max-w-full w-[80ch]">
-        <main class:list={[classList]}>
-          <slot />
-        </main>
-      </div>
-    </div>
-    <Footer />
-  </body>
-</html>
+<!-- scripts
+<script is:inline defer src="https://cloud.umami.is/script.js" data-website-id="d41f775b-3a39-4ed9-b68a-5afe73974f01"
+></script>
+-->
