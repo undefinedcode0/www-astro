@@ -122,8 +122,8 @@ html:not(.font-sans):not(.font-serif):not(.font-mono) {
 
 html {
   transition:
-    background-color var(--transition-duration) ease,
-    color var(--transition-duration) ease;
+    background-color,
+    color;
   scroll-behavior: smooth;
   scroll-padding: 2rem;
 }
@@ -136,25 +136,7 @@ html {
   line-height: 1.681;
 }
 
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@utility fade-in {
-  opacity: 0;
-  animation: fade-in var(--transition-duration) ease-in-out forwards;
-}
-
 .prose {
-  * {
-    @apply fade-in;
-  }
 
   hr {
     @apply opacity-20 border-0 h-px my-5;
