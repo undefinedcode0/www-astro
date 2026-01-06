@@ -2,6 +2,7 @@
 // No server-side javascript needed for this component based on the original svelte code.
 // All logic is client-side.
 ---
+
 <div class="starfield-container" transition:persist="starfield">
   <canvas class="stars-canvas" aria-hidden="true"></canvas>
 </div>
@@ -185,7 +186,7 @@
           stopAnimation();
         }
       },
-      { signal }
+      { signal },
     );
 
     // Intersection Observer for efficiency
@@ -199,7 +200,7 @@
           stopAnimation();
         }
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
     intersectionObserver.observe(canvas);
 

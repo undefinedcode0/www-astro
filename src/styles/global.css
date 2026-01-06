@@ -134,7 +134,6 @@ html {
 }
 
 .prose {
-
   hr {
     @apply opacity-20 border-0 h-px my-5;
   }
