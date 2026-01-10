@@ -8,16 +8,16 @@
     "preview": "astro preview",
     "astro": "astro",
     "fmt": "prettier . --write",
-    "aio": "npm run build && npx wrangler pages deploy ./dist --project-name=undefinedcode"
+    "aio": "npm run fmt && npm run build && npx wrangler pages deploy ./dist --project-name=undefinedcode"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.10",
-    "@astrojs/mdx": "^4.3.7",
-    "@astrojs/rss": "^4.0.12",
-    "@astrojs/sitemap": "^3.6.0",
+    "@astrojs/cloudflare": "^12.6.12",
+    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/rss": "^4.0.14",
+    "@astrojs/sitemap": "^3.6.1",
     "@astrojs/upgrade": "^0.6.2",
     "@tailwindcss/vite": "^4.1.5",
-    "astro": "^5.14.6",
+    "astro": "^5.16.8",
     "astro-critters": "^2.2.1",
     "astro-feather-icons2": "^1.0.0",
     "astro-opengraph-image": "^0.2.2",

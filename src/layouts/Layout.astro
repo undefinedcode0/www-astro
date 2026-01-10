@@ -25,54 +25,11 @@ const { title, description, dim: isDim, class: classList } = Astro.props;
   <script is:inline>
     (function () {
       const d = document.documentElement;
+      const t = localStorage.getItem('theme') || 'system';
+      const f = localStorage.getItem('font') || 'serif';
 
-      // --- Theme Handling (Optimized) ---
-      const themeKey = 'theme';
-      const defaultTheme = 'system';
-      const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-      function getTheme() {
-        return localStorage.getItem(themeKey) || defaultTheme;
-      }
-
-      function applyTheme(theme) {
-        // Use a single class toggle instead of multiple operations
-        d.className = d.className.replace(/\b(dark|light|system)\b/g, '');
-        d.classList.add(theme);
-
-        if (theme === 'system') {
-          d.classList.toggle('dark', darkQuery.matches);
-        } else if (theme === 'dark') {
-          d.classList.add('dark');
-        }
-      }
-
-      // --- Font Handling (Optimized) ---
-      const fontKey = 'font';
-      const fontMap = { sans: 'font-sans', serif: 'font-serif', mono: 'font-mono' };
-      const defaultFont = 'serif';
-
-      function applyFont(font) {
-        // Remove all font classes at once
-        Object.values(fontMap).forEach((cls) => d.classList.remove(cls));
-        d.classList.add(fontMap[font] || fontMap[defaultFont]);
-      }
-
-      // Apply settings
-      const theme = getTheme();
-      const font = localStorage.getItem(fontKey) || defaultFont;
-
-      applyTheme(theme);
-      applyFont(font);
-
-      // Add system theme listener only if needed
-      if (theme === 'system') {
-        darkQuery.addEventListener('change', (e) => {
-          if (getTheme() === 'system') {
-            d.classList.toggle('dark', e.matches);
-          }
-        });
-      }
+      // Single batch class assignment
+      d.className = `${t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme:dark)').matches) ? 'dark' : ''} font-${f}`;
     })();
   </script>
   {/* ================================================================= */}
