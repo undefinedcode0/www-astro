@@ -35,91 +35,51 @@ const fontClassMap: Record<FontType, string> = {
   }
 </div>
 
-<script is:inline define:vars={{ validFonts, defaultFont, fontClassMap, fontDefinitions }}>
-  const fontStorageKey = 'font'; // Ensure this matches Layout.astro head script
+<script is:inline define:vars={{ validFonts, defaultFont, fontClassMap }}>
+  const fontStorageKey = 'font';
 
-  // Get the font setting from localStorage
   function getStoredFont() {
-    const storedFont = localStorage.getItem(fontStorageKey);
-    return validFonts.includes(storedFont) ? storedFont : defaultFont;
+    const stored = localStorage.getItem(fontStorageKey);
+    return validFonts.includes(stored) ? stored : defaultFont;
   }
 
-  // Apply font class to <html> (mirrors head script logic for updates)
   function applyFontPreference(font) {
     const d = document.documentElement;
-    // Remove all possible font classes first
     Object.values(fontClassMap).forEach((cls) => d.classList.remove(cls));
-    // Add the correct class
-    if (fontClassMap[font]) {
-      d.classList.add(fontClassMap[font]);
-    } else {
-      // Fallback if something went wrong, though validation should prevent this
-      d.classList.add(fontClassMap[defaultFont]);
-    }
+    d.classList.add(fontClassMap[font] || fontClassMap[defaultFont]);
   }
 
-  // Update button visual states (active/inactive)
   function updateButtons(selectedFont) {
-    const fontButtons = document.querySelectorAll('#font-selector .font-button');
-    fontButtons.forEach((button) => {
-      const buttonFont = button.dataset.font;
-      if (buttonFont === selectedFont) {
-        button.classList.add('bg-bg'); // Your active class
-        button.classList.remove('hover:bg-text/10'); // Remove hover effect if active
-      } else {
-        button.classList.remove('bg-bg');
-        button.classList.add('hover:bg-text/10'); // Your hover class for inactive
-      }
+    document.querySelectorAll('#font-selector .font-button').forEach((button) => {
+      const buttonFont = button.getAttribute('data-font');
+      const isActive = buttonFont === selectedFont;
+      button.classList.toggle('bg-bg', isActive);
+      button.classList.toggle('hover:bg-text/10', !isActive);
     });
   }
 
-  // Set font, save to localStorage, apply classes, update buttons
   function setFont(newFont) {
-    // Basic validation, though getStoredFont handles the initial load default
-    if (!validFonts.includes(newFont)) {
-      console.warn(`Invalid font selected: ${newFont}`);
-      return;
-    }
-
-    const currentStoredFont = getStoredFont();
-    // Avoid unnecessary work if font hasn't changed
-    if (newFont === currentStoredFont) return;
-
+    if (!validFonts.includes(newFont)) return;
     localStorage.setItem(fontStorageKey, newFont);
-    applyFontPreference(newFont); // Apply class changes to <html>
-    updateButtons(newFont); // Update button appearance
+    applyFontPreference(newFont);
+    updateButtons(newFont);
   }
 
-  // Handler for button clicks
-  function handleFontButtonClick(event) {
-    // Use currentTarget to ensure we get the button the listener was attached to
-    const button = event.currentTarget;
-    const newFont = button.dataset.font;
-    if (newFont) {
-      setFont(newFont);
-    }
-  }
-
-  // Initialize the component state on load
   function initFontSelector() {
-    const currentStoredFont = getStoredFont();
-    updateButtons(currentStoredFont); // Set initial button active state
+    const root = document.getElementById('font-selector');
+    if (!root) return;
 
-    // Add click listeners to buttons
-    const fontButtons = document.querySelectorAll('#font-selector .font-button');
-    fontButtons.forEach((button) => {
-      // Use a flag to prevent multiple listeners if astro:page-load fires repeatedly
-      if (!button.hasFontListener) {
-        button.addEventListener('click', handleFontButtonClick);
-        button.hasFontListener = true; // Mark as listener attached
-      }
-    });
+    root.onclick = (e) => {
+      const btn = e.target.closest?.('button[data-font]');
+      if (!btn) return;
+      const newFont = btn.getAttribute('data-font');
+      if (newFont) setFont(newFont);
+    };
 
-    // Optional: Re-apply font preference? Usually handled by head script.
-    // applyFontPreference(currentStoredFont);
+    const current = getStoredFont();
+    updateButtons(current);
   }
 
-  // Run initialization on initial load and after client-side navigation
   initFontSelector();
   document.addEventListener('astro:page-load', initFontSelector);
 </script>

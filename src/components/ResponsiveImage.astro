@@ -6,6 +6,7 @@ const {
   alt = '',
   base = 400,
   scales = [1, 2, 3],
+  widths: explicitWidths = undefined,
   // allow user to pass `format` as string or array (or omit it)
   format = undefined,
   quality = 80,
@@ -28,7 +29,10 @@ if (Array.isArray(format) && format.length > 0) {
 }
 
 // compute widths
-const widths = scales.map((s) => Math.round(base * s));
+const widths =
+  Array.isArray(explicitWidths) && explicitWidths.length
+    ? explicitWidths.map((w) => Math.round(Number(w)))
+    : scales.map((s) => Math.round(base * s));
 ---
 
 {/** Conditionally pass `format` only when it's defined to avoid sending `format=undefined` */}

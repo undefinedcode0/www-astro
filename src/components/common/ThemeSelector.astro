@@ -29,125 +29,76 @@ const themes = [
 <script is:inline>
   const themeStorageKey = 'theme';
   const themeQuery = '(prefers-color-scheme: dark)';
-  const defaultTheme = 'system'; // Should match the default in Layout.astro's head script
-  let mediaQuery = window.matchMedia(themeQuery); // Keep reference for listener management
+  const defaultTheme = 'system';
+  const mediaQuery = window.matchMedia(themeQuery);
 
-  // Get the theme setting from localStorage
   function getStoredTheme() {
     return localStorage.getItem(themeStorageKey) || defaultTheme;
   }
 
-  // Apply theme classes to <html> (mirrors head script logic for updates)
   function applyThemePreference(theme) {
     const d = document.documentElement;
-    d.classList.remove('dark', 'light', 'system'); // Clear existing states
+    d.classList.remove('dark', 'light', 'system');
 
     if (theme === 'dark') {
       d.classList.add('dark');
-    } else if (theme === 'light') {
-      d.classList.add('light');
-    } else {
-      // system
-      d.classList.add('system');
-      if (mediaQuery.matches) {
-        d.classList.add('dark');
-      } else {
-        // Optional: d.classList.add('light');
-      }
+      return;
     }
+
+    if (theme === 'light') {
+      d.classList.add('light');
+      return;
+    }
+
+    // system
+    d.classList.add('system');
+    if (mediaQuery.matches) d.classList.add('dark');
   }
 
-  // Update button visual states (active/inactive)
   function updateButtons(selectedTheme) {
-    const themeButtons = document.querySelectorAll('#theme-selector .theme-button');
-    themeButtons.forEach((button) => {
-      const buttonTheme = button.dataset.theme;
-      if (buttonTheme === selectedTheme) {
-        button.classList.add('bg-bg'); // Your active class
-        button.classList.remove('hover:bg-text/10'); // Remove hover effect if active
-      } else {
-        button.classList.remove('bg-bg');
-        button.classList.add('hover:bg-text/10'); // Your hover class for inactive
-      }
+    document.querySelectorAll('#theme-selector .theme-button').forEach((button) => {
+      const buttonTheme = button.getAttribute('data-theme');
+      const isActive = buttonTheme === selectedTheme;
+      button.classList.toggle('bg-bg', isActive);
+      button.classList.toggle('hover:bg-text/10', !isActive);
     });
   }
 
-  // Handler for system theme changes
   const handleSystemThemeChange = (e) => {
-    // Only apply changes if the *stored* setting is still 'system'
-    if (getStoredTheme() === 'system') {
-      const d = document.documentElement;
-      if (e.matches) {
-        d.classList.add('dark');
-        d.classList.remove('light');
-      } else {
-        d.classList.remove('dark');
-        // Optional: d.classList.add('light');
-      }
-      // Buttons don't need updating as 'system' is still the selected *setting*
-    }
+    if (getStoredTheme() !== 'system') return;
+    const d = document.documentElement;
+    if (e.matches) d.classList.add('dark');
+    else d.classList.remove('dark');
   };
 
-  // Set theme, save to localStorage, apply classes, update buttons, manage listener
   function setTheme(newTheme) {
-    const currentStoredTheme = getStoredTheme();
-    // Avoid unnecessary work if theme hasn't changed
-    // Note: We might still need to run if currentStoredTheme is 'system' and the actual
-    // displayed theme changed, but clicking a button implies explicit choice.
-    // if (newTheme === currentStoredTheme) return;
-
     localStorage.setItem(themeStorageKey, newTheme);
-    applyThemePreference(newTheme); // Apply class changes to <html>
-    updateButtons(newTheme); // Update button appearance
+    applyThemePreference(newTheme);
+    updateButtons(newTheme);
 
-    // Manage the system theme listener based on the *new* setting
-    if (newTheme === 'system') {
-      mediaQuery.addEventListener('change', handleSystemThemeChange);
-    } else {
-      // Remove listener if switching away from 'system'
-      mediaQuery.removeEventListener('change', handleSystemThemeChange);
-    }
-  }
-
-  // Initialize the component state on load
-  function initThemeSelector() {
-    const currentStoredTheme = getStoredTheme();
-    updateButtons(currentStoredTheme); // Set initial button active state
-
-    // Add click listeners to buttons
-    const themeButtons = document.querySelectorAll('#theme-selector .theme-button');
-    themeButtons.forEach((button) => {
-      // Use a flag to prevent multiple listeners if astro:page-load fires multiple times
-      if (!button.hasThemeListener) {
-        button.addEventListener('click', () => {
-          const newTheme = button.dataset.theme;
-          if (newTheme) {
-            setTheme(newTheme);
-          }
-        });
-        button.hasThemeListener = true; // Mark as listener attached
-      }
-    });
-
-    // Add system theme listener *only if* the initial stored theme is 'system'
-    // Remove previous listener first in case init runs multiple times (e.g., HMR)
     mediaQuery.removeEventListener('change', handleSystemThemeChange);
-    if (currentStoredTheme === 'system') {
-      mediaQuery.addEventListener('change', handleSystemThemeChange);
-    }
-
-    // Optional: Re-apply theme preference here? Usually not needed due to head script,
-    // but could be a fallback. Be careful not to cause flashes.
-    // applyThemePreference(currentStoredTheme);
+    if (newTheme === 'system') mediaQuery.addEventListener('change', handleSystemThemeChange);
   }
 
-  // Run initialization on initial load and after client-side navigation
+  function initThemeSelector() {
+    const root = document.getElementById('theme-selector');
+    if (!root) return;
+
+    // bind once via property (overwrites on re-init, does not stack)
+    root.onclick = (e) => {
+      const btn = e.target.closest?.('button[data-theme]');
+      if (!btn) return;
+      const newTheme = btn.getAttribute('data-theme');
+      if (newTheme) setTheme(newTheme);
+    };
+
+    const current = getStoredTheme();
+    updateButtons(current);
+
+    mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    if (current === 'system') mediaQuery.addEventListener('change', handleSystemThemeChange);
+  }
+
   initThemeSelector();
   document.addEventListener('astro:page-load', initThemeSelector);
-
-  // Optional: Cleanup listener on navigation if using view transitions heavily,
-  // though for static sites it's less critical.
-  // document.addEventListener('astro:before-preparation', () => {
-  //    mediaQuery.removeEventListener('change', handleSystemThemeChange);
-  // });
 </script>

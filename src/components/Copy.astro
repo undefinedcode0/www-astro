@@ -64,48 +64,46 @@ const { text, class: className } = Astro.props;
 </style>
 
 <script>
-  // Use event delegation - single listener for all copy buttons
-  function initCopyHandlers() {
-    const handler = async (e: Event) => {
-      const target = (e.target as Element).closest('.copy-wrapper');
-      if (!target) return;
+  const copyHandler = async (e) => {
+    const el = e.target?.closest?.('.copy-wrapper');
+    if (!el) return;
 
-      const text = target.getAttribute('data-copy-text');
-      if (!text) return;
+    const text = el.getAttribute('data-copy-text');
+    if (!text) return;
 
-      const icon = target.querySelector('.copy-icon');
-      const copySymbol = target.querySelector('.copy-symbol');
-      const checkmark = target.querySelector('.checkmark');
+    const icon = el.querySelector('.copy-icon');
+    const copySymbol = el.querySelector('.copy-symbol');
+    const checkmark = el.querySelector('.checkmark');
 
-      try {
-        await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
 
-        if (icon && copySymbol && checkmark) {
-          icon.classList.add('copied');
-          copySymbol.classList.add('hidden');
-          checkmark.classList.remove('hidden');
+      if (icon && copySymbol && checkmark) {
+        icon.classList.add('copied');
+        copySymbol.classList.add('hidden');
+        checkmark.classList.remove('hidden');
 
-          setTimeout(() => {
-            icon.classList.remove('copied');
-            copySymbol.classList.remove('hidden');
-            checkmark.classList.add('hidden');
-          }, 2000);
-        }
-      } catch (err) {
-        // Fallback for older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.cssText = 'position:fixed;left:-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
+        setTimeout(() => {
+          icon.classList.remove('copied');
+          copySymbol.classList.remove('hidden');
+          checkmark.classList.add('hidden');
+        }, 2000);
       }
-    };
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.cssText = 'position:fixed;left:-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  };
 
-    // Remove existing listener before adding new one
-    document.removeEventListener('click', handler);
-    document.addEventListener('click', handler);
+  function initCopyHandlers() {
+    document.removeEventListener('click', copyHandler);
+    document.addEventListener('click', copyHandler);
   }
 
   initCopyHandlers();

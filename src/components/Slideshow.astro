@@ -49,12 +49,17 @@ const slideshowId = `slideshow-${Math.random().toString(36).slice(2, 9)}`;
     if (!slidesWrap) return;
 
     // Wrap children once
-    Array.from(slidesWrap.children).forEach((child) => {
-      if (child.classList.contains('slide')) return;
+    Array.from(slidesWrap.children).forEach((node) => {
+      const el = node instanceof HTMLElement ? node : null;
+      if (!el) return;
+
+      // If it's already a .slide wrapper, leave it alone.
+      if (el.classList.contains('slide')) return;
+
       const wrapper = document.createElement('div');
       wrapper.className = 'slide min-w-full flex items-center justify-center';
-      child.replaceWith(wrapper);
-      wrapper.appendChild(child);
+      el.replaceWith(wrapper);
+      wrapper.appendChild(el);
 
       const img = wrapper.querySelector('img');
       if (img) img.classList.add('w-full', 'h-auto', 'object-contain', 'max-h-[70vh]');
