@@ -1,0 +1,20 @@
+---
+title: skipping queues to get codes for chatcut
+description: ...very easily with a misconfigured supabase
+pubDate: 'Feb 12 2026'
+---
+
+we start at me scrolling through twitter and i see someone vibecoded a website for queuing in to get chatcut codes. i navigate to the website and notice a suparbase url, and a user api key in the `config.js` file found when you view the source of `index.html`. i start to think about how i could use this information to skip the queue (out of curiosity). i decide to use the user api key and the supabase url and retrieve the chatcut codes without having to wait in line via curl `curl "https://<<>>.supabase.co/rest/v1/codes?select=*" -H "apikey: <<>>" -H "Authorization: Bearer <<>>"` (information is redacted)... success. i post the results under a post on twitter:
+![post1](src/images/twitter1.png)
+
+after my discovery, i decided to contact the owner of the website on twitter:
+![post2](src/images/twitter2.png)
+
+in summary: i discovered a vulnerability in the vibecoded chatcut codes website that allowed me to retrieve chatcut codes without waiting in line via curl. i contacted the owner of the website on twitter and reported the issue. the owner resolved the issue within three hours.
+
+timeline for this:
+- feb 12 2:30 PM found info in `config.js` and started experimenting with requests via curl.
+- feb 12 2:55 PM successfully retrieved chatcut codes without waiting in line and posted results on twitter.
+- feb 12 3:00 PM contacted the owner of the website on twitter.
+- feb 12 3:03-3:28 PM contacted the owner of the website about the issue.
+- feb 12 3:40-4:56 PM issue is now resolved.
