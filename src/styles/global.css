@@ -33,8 +33,8 @@
 }
 
 @font-face {
-  font-family: 'iAWriterMono';
-  src: url('/fonts/iA-Writer-Mono-Regular.woff2') format('woff2');
+  font-family: 'GeistMono';
+  src: url('/fonts/geistmono.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -94,7 +94,7 @@
   --font-serif: 'source-serif-4', serif;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-zodiak: 'Zodiak', serif;
-  --font-mono: 'iAWriterMono', ui-monospace, monospace;
+  --font-mono: 'GeistMono', ui-monospace, monospace;
   --font-display--font-feature-settings: 'salt';
 }
 
@@ -187,7 +187,7 @@ html {
 
   ul li::marker {
     content: '- ';
-    font-family: iAWriterMono, ui-monospace, monospace;
+    font-family: GeistMono, ui-monospace, monospace;
   }
 
   li::marker {

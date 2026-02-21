@@ -49,18 +49,16 @@
 
   let state: StarfieldState | null = null;
 
-  function createStars(width: number, height: number): Star[] {
-    const result: Star[] = [];
+  const OPACITY_BUCKETS = 8;
+
+  function createStars(width: number, height: number): Star[][] {
+    const buckets: Star[][] = Array.from({ length: OPACITY_BUCKETS }, () => []);
 
     const addStars = (count: number, size: number, speed: number) => {
       for (let i = 0; i < count; i++) {
-        result.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          size,
-          speed,
-          opacity: 0.3 + Math.random() * 0.7,
-        });
+        const opacity = 0.3 + Math.random() * 0.7;
+        const bucketIndex = Math.min(Math.floor(((opacity - 0.3) / 0.7) * OPACITY_BUCKETS), OPACITY_BUCKETS - 1);
+        buckets[bucketIndex].push({ x: Math.random() * width, y: Math.random() * height, size, speed, opacity });
       }
     };
 
@@ -68,24 +66,27 @@
     addStars(STAR_COUNTS.medium, 1.5, SPEEDS.medium);
     addStars(STAR_COUNTS.large, 2, SPEEDS.large);
 
-    return result;
+    return buckets;
   }
 
   function draw() {
     if (!state || !state.isVisible) return;
 
     const { ctx, stars, width, height } = state;
-
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#FFF';
 
-    for (const star of stars) {
-      star.y = (star.y + star.speed) % height;
-      star.x = (star.x + star.speed * 0.5) % width;
+    for (const bucket of stars) {
+      if (bucket.length === 0) continue;
 
-      ctx.globalAlpha = star.opacity;
+      ctx.globalAlpha = bucket[0].opacity; // representative alpha for bucket
       ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      for (const star of bucket) {
+        star.y = (star.y + star.speed) % height;
+        star.x = (star.x + star.speed * 0.5) % width;
+        ctx.moveTo(star.x + star.size, star.y);
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      }
       ctx.fill();
     }
 
