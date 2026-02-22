@@ -2,9 +2,8 @@
 
 ## tech
 
-- astro (ssr)
+- astro
 - tailwind
-- view transitions
 - astro content
 
 ---
