@@ -9,8 +9,8 @@
 }
 
 @font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  font-family: 'Geist';
+  src: url('/fonts/geist.woff2') format('woff2');
   font-weight: 100 550;
   font-style: normal;
   font-display: swap;
@@ -55,7 +55,7 @@
 
 [data-theme='dark'],
 .dark {
-  --themed-bg: #0a0a0a;
+  --themed-bg: #0d0c0c;
   --themed-text: #d8d6c9;
   --themed-link: #687eaa;
 
@@ -76,7 +76,7 @@
   --themed-a4: #5ea994;
 
   @media (prefers-color-scheme: dark) {
-    --themed-bg: #0a0a0a;
+    --themed-bg: #0d0c0c;
     --themed-text: #d8d6c9;
     --themed-link: #687eaa;
 
@@ -109,7 +109,7 @@
   --color-a4: var(--themed-a4);
 
   --font-serif: 'source-serif-4', serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Geist', system-ui, sans-serif;
   --font-zodiak: 'Zodiak', serif;
   --font-mono: 'GeistMono', ui-monospace, monospace;
   --font-display--font-feature-settings: 'salt';
