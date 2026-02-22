@@ -55,8 +55,7 @@
 
 [data-theme='dark'],
 .dark {
-  /* Original intended terminal look */
-  --themed-bg: #121212;
+  --themed-bg: #0a0a0a;
   --themed-text: #d8d6c9;
   --themed-link: #687eaa;
 
@@ -77,7 +76,7 @@
   --themed-a4: #5ea994;
 
   @media (prefers-color-scheme: dark) {
-    --themed-bg: #121212;
+    --themed-bg: #0a0a0a;
     --themed-text: #d8d6c9;
     --themed-link: #687eaa;
 
