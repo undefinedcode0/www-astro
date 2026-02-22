@@ -41,32 +41,50 @@
 }
 
 :root {
-  --themed-text: oklch(0.28 0.0071 106.85);
-  --themed-bg: oklch(0.97 0.0108 95.16);
-  --themed-link: oklch(0.56 0.2573 262.91);
+  /* Light theme (derived from palette neutrals) */
+  --themed-bg: #d8d6c9;
+  --themed-text: #232323;
+  --themed-link: #687eaa;
 
-  --themed-a1: oklch(0.71 0.0789 238.32);
-  --themed-a2: oklch(0.71 0.1184 34.41);
-  --themed-a3: oklch(0.71 0.0937 300.18);
-  --themed-a4: oklch(0.71 0.1135 132.88);
+  /* Accent set pulled from terminal colors */
+  --themed-a1: #80a665; /* green */
+  --themed-a2: #cb7676; /* red */
+  --themed-a3: #bc76c1; /* magenta */
+  --themed-a4: #5ea994; /* cyan */
 }
 
 [data-theme='dark'],
 .dark {
-  --themed-text: oklch(0.88 0.0614 259.83);
-  --themed-bg: oklch(0.21 0.0353 259.49);
-  --themed-link: oklch(0.71 0.1643 254.62);
+  /* Original intended terminal look */
+  --themed-bg: #121212;
+  --themed-text: #d8d6c9;
+  --themed-link: #687eaa;
+
+  --themed-a1: #4c8e72; /* active border green */
+  --themed-a2: #cc9b70; /* yellow */
+  --themed-a3: #bc76c1; /* magenta */
+  --themed-a4: #5ea994; /* cyan */
 }
 
 .system {
-  --themed-text: oklch(0.28 0.0071 106.85);
-  --themed-bg: oklch(0.97 0.0108 95.16);
-  --themed-link: oklch(0.56 0.2573 262.91);
+  --themed-bg: #d8d6c9;
+  --themed-text: #232323;
+  --themed-link: #687eaa;
+
+  --themed-a1: #80a665;
+  --themed-a2: #cb7676;
+  --themed-a3: #bc76c1;
+  --themed-a4: #5ea994;
 
   @media (prefers-color-scheme: dark) {
-    --themed-text: oklch(0.88 0.0614 259.83);
-    --themed-bg: oklch(0.21 0.0353 259.49);
-    --themed-link: oklch(0.71 0.1643 254.62);
+    --themed-bg: #121212;
+    --themed-text: #d8d6c9;
+    --themed-link: #687eaa;
+
+    --themed-a1: #4c8e72;
+    --themed-a2: #cc9b70;
+    --themed-a3: #bc76c1;
+    --themed-a4: #5ea994;
   }
 }
 

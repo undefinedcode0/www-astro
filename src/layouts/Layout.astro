@@ -38,7 +38,7 @@ const { title, description, dim: isDim, class: classList } = Astro.props;
     <Header />
     <div class="flex flex-wrap gap-20 w-full bg-bg">
       <Aside class="top-20 2xl:sticky" dim={isDim} transition:persist="aside" />
-      <div class="max-w-full w-[80ch]">
+      <div class="flex-1 min-w-0 max-w-4xl">
         <main class:list={[classList]}>
           <slot />
         </main>
