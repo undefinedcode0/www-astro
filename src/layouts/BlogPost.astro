@@ -39,7 +39,7 @@ const { title, description, pubDate, updatedDate } = Astro.props;
     </span>
   </a>
   <h1 transition:name={`post ${title}`} class="py-6 text-3xl font-light font-zodiak text-text">
-      <span style="user-select: none;" class="themed-text mr-2 opacity-50">//</span>{title}
+    <span style="user-select: none;" class="themed-text mr-2 opacity-50">//</span>{title}
   </h1>
   <p>
     <span class:list={[updatedDate ? 'text-text/100' : 'text-text/100']}>
